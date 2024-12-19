@@ -1,43 +1,101 @@
 import { useState } from 'react';
 import {
-  TextInput,
-  PasswordInput,
   Button,
   Box,
   Avatar,
-  Title,
+  Typography,
   Container,
-  Group,
-  Text,
-} from '@mantine/core';
-import { Lock } from 'lucide-react';
-import { Link } from 'wouter';
+  Paper,
+  Radio,
+  RadioGroup,
+  FormControl,
+  FormControlLabel,
+  IconButton,
+  NativeSelect,
+} from '@mui/material';
+import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useLocation } from 'wouter';
+import { TextInput, Title } from '@mantine/core';
 
 const Register = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [, setLocation] = useLocation();
+  const [userType, setUserType] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState<string>('');
+
+const teams = [
+  { label: 'BM Granollers', id: 1 },
+  { label: 'FC Barcelona', id: 2 },
+  { label: 'Atlético Valladolid', id: 3 }
+];
 
   const handleRegister = async () => {
-    // Registration logic
+    setEmailError('');
+    setPasswordError('');
+
+    if (email === '') {
+      setEmailError('Please enter your email');
+      return;
+    }
+
+    if (password === '') {
+      setPasswordError('Please enter a password');
+      return;
+    }
+
+    if (password.length < 7) {
+      setPasswordError('Password must be 8 characters or longer');
+      return;
+    }
+
+    if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    alert('Registration successful!');
+    setLocation('/home');
   };
 
   return (
     <Container size={420} my={40}>
-      <Box
-        style={{
+     <Paper 
+        elevation={3}
+        sx={{
+          mt: 8,
+          p: 4,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)',
         }}
       >
-        <Avatar size={60} radius="xl" color="blue" mb={10}>
-          <Lock size={30} />
+     <IconButton 
+        sx={{ position: 'absolute', left: 16, top: 16 }}
+        onClick={() => setLocation('/')}
+      >
+        <ArrowBackIcon />
+      </IconButton>
+
+        <Avatar 
+          sx={{
+            m: 1,
+            bgcolor: '#FFD700CC',
+            width: 56,
+            height: 56
+          }}
+        >
+          <SportsSoccerIcon />
         </Avatar>
         <Title order={2} mb="md">
           Register
         </Title>
-      </Box>
 
       <Box>
         <TextInput
@@ -67,22 +125,89 @@ const Register = () => {
           mb="lg"
         />
 
-        <Button
-          fullWidth
-          onClick={handleRegister}
-          color="blue"
-          size="md"
-          mb="sm"
-        >
-          Register
-        </Button>
+  <FormControl fullWidth>
+      <Typography 
+        variant="subtitle1" 
+        sx={{ 
+          fontSize: '0.9rem',
+          fontWeight: 700,
+          color: 'rgba(0, 0, 0, 0.87)',
+          mb: 1
+        }}
+      >
+        Select your team
+      </Typography>
+        <NativeSelect
+            value={selectedTeam}
+            onChange={(e) => setSelectedTeam(e.target.value)}
+            fullWidth
+            sx={{
+              backgroundColor: 'white',
+              borderRadius: 1,
+              '& select': {
+                padding: '10px 14px',
+              },
+              '& .MuiNativeSelect-select': {
+                borderColor: '#00CED1'
+              },
+              '&:hover .MuiNativeSelect-select': {
+                borderColor: '#40E0D0'
+              }
+            }}
+          >
+            {teams.map((team) => (
+              <option key={team.id} value={team.id}>
+                {team.label}
+              </option>
+            ))}
+          </NativeSelect>
+        </FormControl>
+        
+        <Box component="form" sx={{ mt: 1, width: '100%' }}>
+          <FormControl component="fieldset" sx={{ mb: 2, width: '100%' }}>
+            <RadioGroup
+              row
+              name="userType"
+              value={userType}
+              onChange={(e) => setUserType(e.target.value)}
+              sx={{ 
+                display: 'flex',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 4,
+                justifyContent: 'center',
+              }}
+            >
+              <FormControlLabel 
+                value="jugador" 
+                control={<Radio sx={{ color: '#40E0D0' }} />} 
+                label="Jugador@"
+              />
+              <FormControlLabel 
+                value="entrenador" 
+                control={<Radio sx={{ color: '#32CD32' }} />} 
+                label="Entrenador@"
+              />
+              </RadioGroup>
+            </FormControl>
+          </Box>  
 
-        <Group >
-          <Text size="sm">
-            Already have an account? <Link to="/login">Login</Link>
-          </Text>
-        </Group>
-      </Box>
+          <Button
+            fullWidth
+            variant="contained"
+            onClick={handleRegister}
+              sx={{
+                mt: 3,
+                mb: 2,
+                bgcolor: '#FFD700CC',
+                '&:hover': {
+                  bgcolor: '#40E0D0'
+                }
+              }}
+          >
+            Register
+          </Button>
+        </Box>
+      </Paper>
     </Container>
   );
 };
