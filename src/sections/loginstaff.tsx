@@ -18,7 +18,7 @@ const LoginStaff = (): JSX.Element => {
   const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [, setLocation] = useLocation(); 
+  const [, setLocation] = useLocation();
 
   const handleLogin = async () => {
     setEmailError('');
@@ -28,12 +28,12 @@ const LoginStaff = (): JSX.Element => {
       setLocation('/home');
     } else {
       alert('Invalid credentials');
-    }  
+    }
   };
 
   return (
     <Container maxWidth="sm">
-      <Paper 
+      <Paper
         elevation={3}
         sx={{
           mt: 8,
@@ -46,8 +46,8 @@ const LoginStaff = (): JSX.Element => {
           position: 'relative'
         }}
       >
-        <IconButton 
-          sx={{ 
+        <IconButton
+          sx={{
             position: 'absolute',
             left: 16,
             top: 16
@@ -73,7 +73,7 @@ const LoginStaff = (): JSX.Element => {
         </Typography>
 
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
-        <TextInput
+          <TextInput
             required
             label="Email Address"
             name="email"

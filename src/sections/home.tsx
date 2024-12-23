@@ -1,7 +1,7 @@
-import {  
-  Typography, 
-  Box, 
-  Button, 
+import {
+  Typography,
+  Box,
+  Button,
   Container,
   Table,
   TableBody,
@@ -25,22 +25,22 @@ const Home = (): JSX.Element => {
   return (
     <Box>
       <Box>
-        <Navbar/>
-      </Box>  
+        <Navbar />
+      </Box>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box  sx={{
-            backgroundImage: 'url("/cat.jpg")',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            height: '400px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            alignItems: 'center',
-            color: 'white',
-            textAlign: 'center',
-            mb: 6
-          }}
+        <Box sx={{
+          backgroundImage: 'url("/cat.jpg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          height: '400px',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'white',
+          textAlign: 'center',
+          mb: 6
+        }}
         >
           <Typography variant="h3" gutterBottom>
             Bienvenid@ a Handball GK Stats Web!
@@ -48,9 +48,9 @@ const Home = (): JSX.Element => {
           <Typography variant="subtitle1" gutterBottom>
             Te gustaría saber más sobre el juego o los creadores?
           </Typography>
-          <Button 
-            variant="contained" 
-            sx={{ 
+          <Button
+            variant="contained"
+            sx={{
               backgroundColor: 'black',
               color: 'white',
               mt: 2
@@ -61,36 +61,36 @@ const Home = (): JSX.Element => {
         </Box>
 
         <Container maxWidth="md" sx={{ mb: 6 }}>
-        <TableContainer 
-          component={Paper} 
-          sx={{ 
-            width: '100%',
-            maxWidth: 600,
-            mx: 'auto',
-            boxShadow: 2
-          }}
-        >
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID Session</TableCell>
-                <TableCell>Usuario</TableCell>
-                <TableCell>Fecha</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {sessions.map((session) => (
-                <TableRow key={session.id}>
-                  <TableCell>{session.id}</TableCell>
-                  <TableCell>{session.usuario}</TableCell>
-                  <TableCell>{session.fecha}</TableCell>
+          <TableContainer
+            component={Paper}
+            sx={{
+              width: '100%',
+              maxWidth: 600,
+              mx: 'auto',
+              boxShadow: 2
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>ID Session</TableCell>
+                  <TableCell>Usuario</TableCell>
+                  <TableCell>Fecha</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Container>
-    
+              </TableHead>
+              <TableBody>
+                {sessions.map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell>{session.id}</TableCell>
+                    <TableCell>{session.usuario}</TableCell>
+                    <TableCell>{session.fecha}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Container>
+
       </Container>
     </Box>
   );

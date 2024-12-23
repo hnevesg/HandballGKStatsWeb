@@ -27,8 +27,8 @@ const Portal = (): JSX.Element => {
   ];
 
   return (
-    <Container maxWidth="lg" 
-      sx={{ 
+    <Container maxWidth="lg"
+      sx={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -65,10 +65,10 @@ const Portal = (): JSX.Element => {
                 }}
               >
                 {card.icon}
-                <Typography 
-                  variant="h6" 
-                  component="div" 
-                  sx={{ 
+                <Typography
+                  variant="h6"
+                  component="div"
+                  sx={{
                     textAlign: 'center',
                     px: 2
                   }}

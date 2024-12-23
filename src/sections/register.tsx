@@ -28,11 +28,11 @@ const Register = () => {
   const [userType, setUserType] = useState('');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
 
-const teams = [
-  { label: 'BM Granollers', id: 1 },
-  { label: 'FC Barcelona', id: 2 },
-  { label: 'Atlético Valladolid', id: 3 }
-];
+  const teams = [
+    { label: 'BM Granollers', id: 1 },
+    { label: 'FC Barcelona', id: 2 },
+    { label: 'Atlético Valladolid', id: 3 }
+  ];
 
   const handleRegister = async () => {
     setEmailError('');
@@ -64,7 +64,7 @@ const teams = [
 
   return (
     <Container size={420} my={40}>
-     <Paper 
+      <Paper
         elevation={3}
         sx={{
           mt: 8,
@@ -76,14 +76,14 @@ const teams = [
           backdropFilter: 'blur(10px)',
         }}
       >
-     <IconButton 
-        sx={{ position: 'absolute', left: 16, top: 16 }}
-        onClick={() => setLocation('/')}
-      >
-        <ArrowBackIcon />
-      </IconButton>
+        <IconButton
+          sx={{ position: 'absolute', left: 16, top: 16 }}
+          onClick={() => setLocation('/')}
+        >
+          <ArrowBackIcon />
+        </IconButton>
 
-        <Avatar 
+        <Avatar
           sx={{
             m: 1,
             bgcolor: '#FFD700CC',
@@ -97,112 +97,121 @@ const teams = [
           Register
         </Title>
 
-      <Box>
-        <TextInput
-          label="Name"
-          placeholder="Your name"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          mb="md"
-        />
-
-        <TextInput
-          label="Email Address"
-          placeholder="you@example.com"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          mb="md"
-        />
-
-        <PasswordInput
-          label="Password"
-          placeholder="Your password"
-          required
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          mb="lg"
-        />
-
-  <FormControl fullWidth>
-      <Typography 
-        variant="subtitle1" 
-        sx={{ 
-          fontSize: '0.9rem',
-          fontWeight: 700,
-          color: 'rgba(0, 0, 0, 0.87)',
-          mb: 1
-        }}
-      >
-        Select your team
-      </Typography>
-        <NativeSelect
-            value={selectedTeam}
-            onChange={(e) => setSelectedTeam(e.target.value)}
-            fullWidth
-            sx={{
-              backgroundColor: 'white',
-              borderRadius: 1,
-              '& select': {
-                padding: '10px 14px',
-              },
-              '& .MuiNativeSelect-select': {
-                borderColor: '#00CED1'
-              },
-              '&:hover .MuiNativeSelect-select': {
-                borderColor: '#40E0D0'
-              }
-            }}
-          >
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>
-                {team.label}
-              </option>
-            ))}
-          </NativeSelect>
-        </FormControl>
-        
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
-          <FormControl component="fieldset" sx={{ mb: 2, width: '100%' }}>
-            <RadioGroup
-              row
-              name="userType"
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              sx={{ 
-                display: 'flex',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 4,
-                justifyContent: 'center',
+          <TextInput
+            required
+            label="Name"
+            name="name"
+            autoComplete="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Your name"
+            mb="md"
+          />
+
+          <TextInput
+            required
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            error={!!emailError}
+            placeholder="you@example.com"
+            mb="md"
+          />
+
+          <TextInput
+            required
+            name="password"
+            label="Password"
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            error={!!passwordError}
+            placeholder="Your password"
+            mb="md"
+          />
+
+          <FormControl fullWidth>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontSize: '0.9rem',
+                fontWeight: 700,
+                color: 'rgba(0, 0, 0, 0.87)',
+                mb: 1
               }}
             >
-              <FormControlLabel 
-                value="jugador" 
-                control={<Radio sx={{ color: '#40E0D0' }} />} 
-                label="Jugador@"
-              />
-              <FormControlLabel 
-                value="entrenador" 
-                control={<Radio sx={{ color: '#32CD32' }} />} 
-                label="Entrenador@"
-              />
+              Select your team
+            </Typography>
+            <NativeSelect
+              value={selectedTeam}
+              onChange={(e) => setSelectedTeam(e.target.value)}
+              fullWidth
+              sx={{
+                backgroundColor: 'white',
+                borderRadius: 1,
+                '& select': {
+                  padding: '10px 14px',
+                },
+                '& .MuiNativeSelect-select': {
+                  borderColor: '#00CED1'
+                },
+                '&:hover .MuiNativeSelect-select': {
+                  borderColor: '#40E0D0'
+                }
+              }}
+            >
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.label}
+                </option>
+              ))}
+            </NativeSelect>
+          </FormControl>
+
+          <Box component="form" sx={{ mt: 1, width: '100%' }}>
+            <FormControl component="fieldset" sx={{ mb: 2, width: '100%' }}>
+              <RadioGroup
+                row
+                name="userType"
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+                sx={{
+                  display: 'flex',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: 4,
+                  justifyContent: 'center',
+                }}
+              >
+                <FormControlLabel
+                  value="entrenador"
+                  control={<Radio sx={{ color: '#32CD32' }} />}
+                  label="Entrenador@"
+                />
+                <FormControlLabel
+                  value="jugador"
+                  control={<Radio sx={{ color: '#40E0D0' }} />}
+                  label="Jugador@"
+                />
               </RadioGroup>
             </FormControl>
-          </Box>  
+          </Box>
 
           <Button
             fullWidth
             variant="contained"
             onClick={handleRegister}
-              sx={{
-                mt: 3,
-                mb: 2,
-                bgcolor: '#FFD700CC',
-                '&:hover': {
-                  bgcolor: '#40E0D0'
-                }
-              }}
+            sx={{
+              mt: 3,
+              mb: 2,
+              bgcolor: '#FFD700CC',
+              '&:hover': {
+                bgcolor: '#40E0D0'
+              }
+            }}
           >
             Register
           </Button>
