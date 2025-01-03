@@ -97,7 +97,7 @@ const PlayerProgress = (): JSX.Element => {
 
           <Box>
             <Button variant="contained"
-              disabled={!beginDate || !endDate || !mode}
+              disabled={!beginDate || !endDate || endDate < beginDate || !mode}
               onClick={() => handleStatistics()}
             >
               Buscar sesiones
