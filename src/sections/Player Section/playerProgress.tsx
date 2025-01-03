@@ -21,7 +21,7 @@ const PlayerProgress = (): JSX.Element => {
   const [, navigate] = useLocation();
   const [beginDate, setBeginDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [mode, setMode] = useState('Expert');
+  const [mode, setMode] = useState('Principiante');
   const [player, setPlayer] = useState<Player | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
 

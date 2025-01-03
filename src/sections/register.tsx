@@ -63,7 +63,7 @@ const Register = () => {
   };
 
   return (
-    <Container size={420} my={40}>
+    <Container maxWidth="sm">
       <Paper
         elevation={3}
         sx={{
