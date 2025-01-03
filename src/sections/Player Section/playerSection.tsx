@@ -58,6 +58,9 @@ const PlayerSection = (): JSX.Element => {
   const getCurrentPagePlayers = useMemo(() => {
     const start = currentPage * playersPerPage;
     const end = start + playersPerPage;
+    if (filteredPlayers.length <= playersPerPage) {
+      return filteredPlayers;
+    }
     return [...filteredPlayers].slice(start, end);
   }, [filteredPlayers, currentPage]);
 
