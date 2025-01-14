@@ -26,7 +26,7 @@ const Register = () => {
   const [passwordError, setPasswordError] = useState('');
   const [, setLocation] = useLocation();
   const [userType, setUserType] = useState('');
-  const [selectedTeam, setSelectedTeam] = useState<string>('');
+  const [selectedTeam, setSelectedTeam] = useState('1');
 
   const teams = [
     { label: 'BM Granollers', id: 1 },
@@ -44,12 +44,17 @@ const Register = () => {
     }
 
     if (password === '') {
-      setPasswordError('Please enter a password');
+      alert('Please enter a password');
       return;
     }
 
     if (password.length < 7) {
-      setPasswordError('Password must be 8 characters or longer');
+      alert('Password must be 8 characters or longer');
+      return;
+    }
+
+    if(userType === ''){
+      alert('Please select a user type');
       return;
     }
 
@@ -58,10 +63,37 @@ const Register = () => {
       return;
     }
 
-    alert('Registration successful!');
-    setLocation('/home');
+    registerData()
   };
 
+  const registerData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          team: parseInt(selectedTeam, 10),
+          user_type: userType
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert('Cuenta creada correctamente');
+        setLocation('/home');
+      } else {
+        //the api returns an http 400 error print the detail
+        alert(data.detail || 'Error creating account');
+      }
+    }
+    catch (error) {
+      console.error('Error:', error);
+    }
+  }
   return (
     <Container maxWidth="sm">
       <Paper
@@ -165,7 +197,7 @@ const Register = () => {
               }}
             >
               {teams.map((team) => (
-                <option key={team.id} value={team.id}>
+                <option key={team.id} value={team.id.toString()}>
                   {team.label}
                 </option>
               ))}
@@ -192,7 +224,7 @@ const Register = () => {
                   label="Entrenador@"
                 />
                 <FormControlLabel
-                  value="jugador"
+                  value="portero"
                   control={<Radio sx={{ color: '#40E0D0' }} />}
                   label="Jugador@"
                 />

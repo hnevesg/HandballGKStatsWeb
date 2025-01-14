@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { JSX, useState } from 'react';
 import {
   Button,
   Box,
@@ -9,27 +9,58 @@ import {
   IconButton
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import GroupsIcon from '@mui/icons-material/Groups';
+import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import { useLocation } from 'wouter';
 import { TextInput } from '@mantine/core';
 
-const LoginStaff = (): JSX.Element => {
+const LoginPlayers = (): JSX.Element => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState(''); 
   const [, setLocation] = useLocation();
 
   const handleLogin = async () => {
     setEmailError('');
     setPasswordError('');
+    setLoginError('');
 
-    if (email === 'user@example.com' && password === '1234') {
-      setLocation('/home');
-    } else {
-      alert('Invalid credentials');
+    if (email === '') {
+      setEmailError('Email is required');
+    }
+
+    if (password === '') {
+      setPasswordError('Password is required');
+    }
+
+    if (email && password) {
+      //call backend api to login
+      fetchData()
     }
   };
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/login-players', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: 
+          JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setLocation('/home');
+      }else{
+        setLoginError(data.detail || 'Login failed'); 
+      }
+    }
+    catch (error) {
+      console.error('Error:', error);
+    }
+  }
 
   return (
     <Container maxWidth="sm">
@@ -60,12 +91,12 @@ const LoginStaff = (): JSX.Element => {
         <Avatar
           sx={{
             m: 1,
-            bgcolor: '#00FF44CC',
+            bgcolor: '#00CED1CC',
             width: 56,
             height: 56
           }}
         >
-          <GroupsIcon />
+          <SportsHandballIcon />
         </Avatar>
 
         <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
@@ -105,7 +136,7 @@ const LoginStaff = (): JSX.Element => {
             sx={{
               mt: 3,
               mb: 2,
-              bgcolor: '#00FF44CC',
+              bgcolor: '#00CED1',
               '&:hover': {
                 bgcolor: '#40E0D0'
               }
@@ -113,10 +144,11 @@ const LoginStaff = (): JSX.Element => {
           >
             Entrar
           </Button>
+          {loginError && <p>{loginError}</p>} 
         </Box>
       </Paper>
     </Container>
   );
 };
 
-export default LoginStaff;
+export default LoginPlayers;

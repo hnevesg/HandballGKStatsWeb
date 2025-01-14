@@ -9,27 +9,59 @@ import {
   IconButton
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import SportsHandballIcon from '@mui/icons-material/SportsHandball';
+import GroupsIcon from '@mui/icons-material/Groups';
 import { useLocation } from 'wouter';
 import { TextInput } from '@mantine/core';
 
-const LoginPlayers = (): JSX.Element => {
+const LoginStaff = (): JSX.Element => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
-  const [password, setPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
   const [, setLocation] = useLocation();
 
   const handleLogin = async () => {
     setEmailError('');
     setPasswordError('');
+    setLoginError('');
 
-    if (email === 'user@example.com' && password === '1234') {
-      setLocation('/home');
-    } else {
-      alert('Invalid credentials');
+
+    if (email === '') {
+      setEmailError('Email is required');
+    }
+
+    if (password === '') {
+      setPasswordError('Password is required');
+    }
+
+    if (email && password) {
+      //llamada a la API 
+      fetchData()
     }
   };
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/login-staff', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setLocation('/home');
+      } else {
+        setLoginError(data.detail || 'Login failed');
+      }
+    }
+    catch (error) {
+      console.error('Error:', error);
+      setLoginError('An error occurred');
+    }
+  }
 
   return (
     <Container maxWidth="sm">
@@ -60,12 +92,12 @@ const LoginPlayers = (): JSX.Element => {
         <Avatar
           sx={{
             m: 1,
-            bgcolor: '#00CED1CC',
+            bgcolor: '#00FF44CC',
             width: 56,
             height: 56
           }}
         >
-          <SportsHandballIcon />
+          <GroupsIcon />
         </Avatar>
 
         <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
@@ -105,7 +137,7 @@ const LoginPlayers = (): JSX.Element => {
             sx={{
               mt: 3,
               mb: 2,
-              bgcolor: '#00CED1',
+              bgcolor: '#00FF44CC',
               '&:hover': {
                 bgcolor: '#40E0D0'
               }
@@ -113,10 +145,11 @@ const LoginPlayers = (): JSX.Element => {
           >
             Entrar
           </Button>
+          {loginError && <p>{loginError}</p>}
         </Box>
       </Paper>
     </Container>
   );
 };
 
-export default LoginPlayers;
+export default LoginStaff;
