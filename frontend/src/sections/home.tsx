@@ -12,8 +12,10 @@ import {
   Paper
 } from '@mui/material';
 import Navbar from '../components/navBar';
+import { useLocation } from 'wouter';
 
 const Home = (): JSX.Element => {
+  const [, navigate] = useLocation();
   const sessions = [
     { id: 57, usuario: 'ttt', fecha: '19/08/23' },
     { id: 56, usuario: 'zzz', fecha: '01/07/23' },
@@ -29,7 +31,7 @@ const Home = (): JSX.Element => {
       </Box>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{
-          backgroundImage: 'url("/image.jpg")',
+          backgroundImage: 'url("/home_img.jpg")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           height: '400px',
@@ -42,21 +44,25 @@ const Home = (): JSX.Element => {
           mb: 6
         }}
         >
-          <Typography variant="h3" gutterBottom>
+          <Typography variant="h3" gutterBottom 
+            sx={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '8px', borderRadius: '4px' }}>
             Bienvenid@ a Handball GK Stats Web!
           </Typography>
-          <Typography variant="subtitle1" gutterBottom>
+          <Typography variant="subtitle1" gutterBottom
+            sx={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '8px', borderRadius: '4px' }}>
             Te gustaría saber más sobre el juego o los creadores?
           </Typography>
           <Button
+            onClick={() => navigate('/about')}
             variant="contained"
             sx={{
+              border: '1px solid white',
               backgroundColor: 'black',
               color: 'white',
               mt: 2
             }}
           >
-            Learn more
+            Haz click aquí
           </Button>
         </Box>
 

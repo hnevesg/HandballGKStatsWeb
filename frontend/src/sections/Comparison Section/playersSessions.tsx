@@ -1,19 +1,6 @@
 import {
-  Box,
-  Container,
-  Typography,
-  Select,
-  MenuItem,
-  Avatar,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button
+  Box, Container, Typography, Select, MenuItem, Avatar, IconButton, Table, TableBody,
+  TableCell, TableContainer, TableHead, TableRow, Paper, Button
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
@@ -111,7 +98,7 @@ const PlayersSessions = (): JSX.Element => {
           {/* Player 1 Section */}
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ mr: 2, bgcolor: '#00CED1' }}>P1</Avatar>
+              <Avatar sx={{ mr: 2, width: 45, height: 45, bgcolor: '#00CED1' }}>GK1</Avatar>
               <Typography variant="h6">{player1?.name}</Typography>
             </Box>
             <TableContainer component={Paper}>
@@ -126,12 +113,12 @@ const PlayersSessions = (): JSX.Element => {
                   {player1Sessions.map((session) => (
                     <TableRow
                       key={session.id}
-                      selected={player1SelectedSession === session.id}
                       onClick={() => { setPlayer1SelectedSession(session.id); }}
                       sx={{
                         cursor: 'pointer',
+                        backgroundColor: player1SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
                         '&:hover': {
-                          backgroundColor: 'rgba(0, 206, 209, 0.04)'
+                          backgroundColor: player1SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
                         }
                       }}
                     >
@@ -147,7 +134,7 @@ const PlayersSessions = (): JSX.Element => {
           {/* Player 2 Section */}
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ mr: 2, bgcolor: '#00CED1' }}>P2</Avatar>
+              <Avatar sx={{ mr: 2, width: 45, height: 45, bgcolor: '#00CED1' }}>GK2</Avatar>
               <Typography variant="h6">{player2?.name}</Typography>
             </Box>
             <TableContainer component={Paper}>
@@ -162,12 +149,12 @@ const PlayersSessions = (): JSX.Element => {
                   {player2Sessions.map((session) => (
                     <TableRow
                       key={session.id}
-                      selected={player2SelectedSession === session.id}
                       onClick={() => { setPlayer2SelectedSession(session.id); }}
                       sx={{
                         cursor: 'pointer',
+                        backgroundColor: player2SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
                         '&:hover': {
-                          backgroundColor: 'rgba(0, 206, 209, 0.04)'
+                          backgroundColor: player2SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
                         }
                       }}
                     >

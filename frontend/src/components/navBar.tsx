@@ -21,7 +21,7 @@ const Navbar = (): JSX.Element => {
             color="inherit"
             onClick={() => setLocation('/home')}
           >
-            Home
+            Inicio
           </Button>
           <Button 
             color="inherit"

@@ -16,7 +16,7 @@ const About = (): JSX.Element => {
         sx={{
           backgroundSize: 'cover',
           backgroundPosition: 'center',
-          height: '200px',
+          height: '140px',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',
@@ -75,7 +75,7 @@ const About = (): JSX.Element => {
               Contáctanos
             </Typography>
             <Typography variant="body1">
-              ¿Tienes dudas o sugerencias? Ponte en contacto con nosotros para obtener ayuda e información.
+              ¿Tienes dudas o sugerencias? Ponte en contacto con nosotros a través de nuestro  <a href="mailto:  @helena.neves@alu.uclm.es">correo electrónico </a>
             </Typography>
           </Box>
         </Paper>

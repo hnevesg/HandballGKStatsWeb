@@ -59,7 +59,7 @@ import { Player } from '../../types/player';
               >
                 {player1?.avatar}
               </Avatar>
-              <Typography>{player1?.name}</Typography>
+            {/*  <Typography>{player1?.name}</Typography>*/}
             </Box>
   
             <Typography variant="h6" sx={{ mx: 2 }}>vs</Typography>
@@ -75,7 +75,7 @@ import { Player } from '../../types/player';
               >
                 {player2?.avatar}
               </Avatar>
-              <Typography>{player2?.name}</Typography>
+             {/* <Typography>{player2?.name}</Typography>*/}
             </Box>
           </Box>
   

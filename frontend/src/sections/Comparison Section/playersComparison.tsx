@@ -8,7 +8,7 @@ import {
   IconButton
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Navbar from '../../components/navBar';
 import { useLocation } from 'wouter';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
@@ -26,14 +26,8 @@ const PlayersComparison = (): JSX.Element => {
   const [activeField, setActiveField] = useState<number | null>(null);
   const [, setLocation] = useLocation();
   const [currentPage, setCurrentPage] = useState(0);
+  const [players, setPlayers] = useState<Player[]>([]);
   const playersPerPage = 3;
-
-  const players: Player[] = [
-    { id: 1, name: 'Alex Smith', avatar: 'As' },
-    { id: 2, name: 'John Doe', avatar: 'JD' },
-    { id: 3, name: 'Mike Johnson', avatar: 'MJ' },
-    { id: 4, name: 'Sarah Wilson', avatar: 'SW' },
-  ];
 
   const filteredPlayers = useMemo(() => {
     return players.filter(player =>
@@ -65,7 +59,6 @@ const PlayersComparison = (): JSX.Element => {
     }
   };
 
-
   const getCurrentPagePlayers = useMemo(() => {
     const start = currentPage * playersPerPage;
     const end = start + playersPerPage;
@@ -91,6 +84,36 @@ const PlayersComparison = (): JSX.Element => {
       return newPage;
     });
   };
+
+  const fetchData = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/players', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        const playersWithAvatars = data.map((player: Player, index: number) => {
+          const [firstName = '', lastName = ''] = player.name.split(' ');
+          const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+          return { ...player, id: index + 1, avatar };
+        });
+
+        setPlayers(playersWithAvatars);
+      } else {
+        console.error('Failed to fetch players:', data.message || response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching players:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   return (
     <Box>
@@ -133,7 +156,7 @@ const PlayersComparison = (): JSX.Element => {
           )}
 
           <Box
-            key={`page-${currentPage}`} 
+            key={`page-${currentPage}`}
             sx={{
               display: 'flex',
               justifyContent: 'center',
@@ -150,7 +173,7 @@ const PlayersComparison = (): JSX.Element => {
                 sx={{
                   width: 80,
                   height: 80,
-                  border: '2px solid #e0e0e0',
+                  border: selectedPlayers[0]?.id === player.id ? '2px solid #00CED1' : selectedPlayers[1]?.id === player.id ? '2px solid #00CED1' : '2px solid #e0e0e0',
                   borderRadius: '50%',
                   '&:hover': {
                     backgroundColor: 'rgba(0, 0, 0, 0.04)',

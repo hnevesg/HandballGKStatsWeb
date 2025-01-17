@@ -45,6 +45,7 @@ class RegisterRequest(BaseModel):
     team: int
     user_type: str  # 'portero' o 'entrenador'
 
+# ------------------- Authentication -------------------
 @app.post("/api/register")
 def register_user(request: RegisterRequest):
     """Función para registrar un nuevo usuario."""
@@ -100,6 +101,15 @@ async def login(request: LoginRequest):
     else:
         raise HTTPException(status_code=404, detail="User not found")
     
+    
+# ------------------- Players -------------------
+@app.get("/api/players")
+def get_players():
+    """Función para obtener la lista de jugadores."""
+    session = SessionLocal()
+    players = session.query(User).filter(User.role == Rol.PORTERO.value).all()
+    session.close()
+    return players
 
 if __name__ == "__main__":
     import uvicorn
