@@ -67,7 +67,7 @@ const PlayerSection = (): JSX.Element => {
     });
   };
 
-  const fetchData = async () => {
+  const getPlayers = async () => {
     try {
       const response = await fetch('http://localhost:8000/api/players', {
         method: 'GET',
@@ -78,10 +78,10 @@ const PlayerSection = (): JSX.Element => {
       const data = await response.json();
 
       if (response.ok) {
-        const playersWithAvatars = data.map((player: Player, index: number) => {
+        const playersWithAvatars = data.map((player: Player) => {
           const [firstName = '', lastName = ''] = player.name.split(' ');
           const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-          return { ...player, id: index + 1, avatar };
+          return { ...player, avatar };
         });
 
         setPlayers(playersWithAvatars);
@@ -94,7 +94,7 @@ const PlayerSection = (): JSX.Element => {
   };
 
   useEffect(() => {
-    fetchData();
+    getPlayers();
   }, []);
 
   return (

@@ -31,10 +31,11 @@ const Home = (): JSX.Element => {
       </Box>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{
-          backgroundImage: 'url("/home_img.jpg")',
-          backgroundSize: 'cover',
+          backgroundImage: 'url("/home_img.png")',
+          backgroundSize: 'contain',
           backgroundPosition: 'center',
           height: '400px',
+          width: '90%',
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'center',

@@ -1,5 +1,7 @@
   export interface Session {
+    id: number;
     date: string;
-    mode: string;
-    details: string;
+    player_id: number;
+    game_mode: string;
+    prestige_level: string;
   }

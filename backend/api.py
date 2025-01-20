@@ -1,10 +1,16 @@
-from fastapi import FastAPI, HTTPException
+from io import BytesIO
+import signal
+import sys
+from fastapi import FastAPI, HTTPException, Response, Query
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import numpy as np
 import logging
+import matplotlib.pyplot as pyplot
+from matplotlib.ticker import MaxNLocator
 
 from roles import Rol
 from usuario import Usuario
@@ -26,13 +32,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ------------------- Models -------------------
 class User(Base):
     __tablename__ = "users"
-    email = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String)
     password = Column(String)
     name = Column(String)
     role = Column(String)
     teamID = Column(Integer)
+
+class Session(Base):
+    __tablename__ = "sessions"
+    id = Column(Integer, primary_key=True, index=True)
+    player_id = Column(Integer)
+    date = Column(String)
+    game_mode = Column(String)
+    prestige_level = Column(String)
 
 class LoginRequest(BaseModel):
     email: str
@@ -110,6 +126,29 @@ def get_players():
     players = session.query(User).filter(User.role == Rol.PORTERO.value).all()
     session.close()
     return players
+
+
+# ------------------- Sessions -------------------
+@app.get("/api/sessions/{player_id}")
+def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(None)):
+    """Función para obtener la lista de sesiones de un jugador."""
+    session = SessionLocal()
+    sessions = session.query(Session).filter(Session.player_id == player_id)
+
+    if mode:
+        sessions = sessions.filter(Session.game_mode == mode)
+    if level:
+        sessions = sessions.filter(Session.prestige_level == level)
+
+    sessions = sessions.all()
+    
+    session.close()
+    return sessions
+
+def shutdown():
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == "__main__":
     import uvicorn

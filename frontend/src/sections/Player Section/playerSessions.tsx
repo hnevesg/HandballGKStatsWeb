@@ -1,17 +1,6 @@
 import {
-    Box,
-    Container,
-    Typography,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    Paper,
-    Avatar,
-    IconButton,
-    Grid
+    Box, Container, Typography, Table, TableBody, TableCell, TableContainer,
+    TableHead, TableRow, Paper, Avatar, IconButton
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LaunchIcon from '@mui/icons-material/Launch';
@@ -22,14 +11,29 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 
 const PlayerSessions = (): JSX.Element => {
-    const [player, setPlayer] = useState<Player | null>(null);
+    const [player, setPlayer] = useState<Player>();
     const [, navigate] = useLocation();
+    const [sessions, setSessions] = useState<Session[]>([]);
 
-    const [sessions] = useState<Session[]>([
-        { date: '22/01/23', mode: 'Expert', details: 'View' },
-        { date: '01/10/23', mode: 'Fixed Position', details: 'View' },
-        { date: '14/09/23', mode: 'Progressive I', details: 'View' }
-    ]);
+    const getSessions = async () => {
+        if(!player) return;
+        try {
+            const response = await fetch(`http://localhost:8000/api/sessions/${player.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setSessions(data);
+            } else {
+                console.error('Error fetching session data');
+            }
+        } catch (error) {
+            console.error('Error fetching session data');
+        }
+    }
 
     useEffect(() => {
         const state = window.history.state;
@@ -38,8 +42,11 @@ const PlayerSessions = (): JSX.Element => {
         }
     }, []);
 
-    const handleSessionSelect = (session: Session) => {
-        //setSession(session);
+    useEffect(() => {
+        getSessions();
+    }, [player]);
+
+    const handleSessionSelect = (session: any) => {
         navigate("/statistics-details", {
             state: { player: window.history.state.player, session: session }
         });
@@ -81,15 +88,17 @@ const PlayerSessions = (): JSX.Element => {
                         <TableHead>
                             <TableRow>
                                 <TableCell>Fecha</TableCell>
-                                <TableCell>Modo</TableCell>
+                                <TableCell>Modo de juego</TableCell>
+                                <TableCell>Dificultad</TableCell>
                                 <TableCell>Detalles</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {sessions.map((session, index) => (
-                                <TableRow key={index}>
+                            {sessions.map((session) => (
+                                <TableRow key={session.id}>
                                     <TableCell>{session.date}</TableCell>
-                                    <TableCell>{session.mode}</TableCell>
+                                    <TableCell>{session.game_mode}</TableCell>
+                                    <TableCell>{session.prestige_level}</TableCell>
                                     <TableCell>
                                         <IconButton size="small"
                                             onClick={() => handleSessionSelect(session)}
@@ -109,3 +118,17 @@ const PlayerSessions = (): JSX.Element => {
 };
 
 export default PlayerSessions;
+/*
+107
+                                    <TableCell>{session.date}</TableCell>
+                                    <TableCell>{session.mode}</TableCell>
+                                    <TableCell>
+                                        <IconButton size="small"
+                                            onClick={() => handleSessionSelect(session)}
+                                            sx={{ mr: 2 }}
+                                        >
+                                            <LaunchIcon />
+                                        </IconButton>
+                                    </TableCell>
+
+*/

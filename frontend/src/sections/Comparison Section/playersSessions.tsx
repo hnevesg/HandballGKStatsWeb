@@ -7,30 +7,62 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Player } from '../../types/player';
 import Navbar from '../../components/navBar';
-
-interface Session {
-  id: number;
-  fecha: string;
-  modo: string;
-}
+import { Session } from '../../types/session';
 
 const PlayersSessions = (): JSX.Element => {
   const [, navigate] = useLocation();
-  const [player1, setPlayer1] = useState<Player | null>(null);
-  const [player2, setPlayer2] = useState<Player | null>(null);
-  const [mode, setMode] = useState('Principiante');
+  const [player1, setPlayer1] = useState<Player>();
+  const [player2, setPlayer2] = useState<Player>();
+  const [mode, setMode] = useState('Normal');
+  const [level, setLevel] = useState('Principiante');
   const [player1SelectedSession, setPlayer1SelectedSession] = useState<number | null>(null);
   const [player2SelectedSession, setPlayer2SelectedSession] = useState<number | null>(null);
+  const [player1Sessions, setPlayer1Sessions] = useState<Session[]>([]);
+  const [player2Sessions, setPlayer2Sessions] = useState<Session[]>([]);
 
-  // Mock sessions data - replace with actual data
-  const player1Sessions: Session[] = [
-    { id: 1, fecha: '22/11/23', modo: 'Experto' },
-  ];
+  const getSessionsP1 = async () => {
+    if (!player1) return;
+    try {
+      console.log("GetSessionsP1")
+      console.log(player1)
+      const response = await fetch(`http://localhost:8000/api/sessions/${player1.id}?mode=${mode}&level=${level}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPlayer1Sessions(data);
+      } else {
+        console.error('Error fetching sessions for P1');
+      }
+    } catch (error) {
+      console.error('Error fetching sessions for P1', error);
+    }
+  }
 
-  const player2Sessions: Session[] = [
-    { id: 1, fecha: '12/12/23', modo: 'Experto' },
-    { id: 2, fecha: '21/10/23', modo: 'Experto' },
-  ];
+  const getSessionsP2 = async () => {
+    if (!player2) return;
+    try {
+      console.log("GetSessionsP2")
+      console.log(player2)
+      const response = await fetch(`http://localhost:8000/api/sessions/${player2.id}?mode=${mode}&level=${level}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPlayer2Sessions(data);
+      } else {
+        console.error('Error fetching sessions for P2');
+      }
+    } catch (error) {
+      console.error('Error fetching sessions for P2', error);
+    }
+  }
 
   useEffect(() => {
     const state = window.history.state;
@@ -41,6 +73,18 @@ const PlayersSessions = (): JSX.Element => {
       setPlayer2(state.player2);
     }
   }, []);
+
+  useEffect(() => {
+    getSessionsP1();
+    getSessionsP2();
+  }, [player1, player2]);
+
+  // Para cuando se cambia el modo o el nivel de dificultad
+  useEffect(() => {
+    getSessionsP1();
+    getSessionsP2();
+  }, [mode, level]);
+
 
   const handleSessionsSelect = () => {
     navigate("/comparison-details", {
@@ -70,7 +114,8 @@ const PlayersSessions = (): JSX.Element => {
         <Box sx={{
           display: 'flex',
           justifyContent: 'center',
-          mb: 4
+          mb: 4,
+          gap: 3
         }}>
           <Box sx={{ width: 200 }}>
             <Typography variant="subtitle2" gutterBottom>Modo</Typography>
@@ -79,12 +124,23 @@ const PlayersSessions = (): JSX.Element => {
               value={mode}
               onChange={(e) => setMode(e.target.value)}
             >
+              <MenuItem value="Normal">Normal</MenuItem>
+              <MenuItem value="Posición Fija">Posición Fija</MenuItem>
+              <MenuItem value="Progresivo I">Progresivo I</MenuItem>
+              <MenuItem value="Progresivo II">Progresivo II</MenuItem>
+            </Select>
+          </Box>
+
+          <Box sx={{ width: 200 }}>
+            <Typography variant="subtitle2" gutterBottom>Nivel de Dificultad</Typography>
+            <Select
+              fullWidth
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+            >
               <MenuItem value="Principiante">Principiante</MenuItem>
               <MenuItem value="Intermedio">Intermedio</MenuItem>
               <MenuItem value="Experto">Experto</MenuItem>
-              <MenuItem value="Posición Fija">Posición Fija</MenuItem>
-              <MenuItem value="Progressivo I">Progresivo I</MenuItem>
-              <MenuItem value="Progressivo II">Progresivo II</MenuItem>
             </Select>
           </Box>
         </Box>
@@ -107,6 +163,7 @@ const PlayersSessions = (): JSX.Element => {
                   <TableRow>
                     <TableCell>Fecha</TableCell>
                     <TableCell>Modo</TableCell>
+                    <TableCell>Nivel de Dificultad</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -116,14 +173,15 @@ const PlayersSessions = (): JSX.Element => {
                       onClick={() => { setPlayer1SelectedSession(session.id); }}
                       sx={{
                         cursor: 'pointer',
-                        backgroundColor: player1SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
+                        backgroundColor: player1SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
                         '&:hover': {
-                          backgroundColor: player1SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
+                          backgroundColor: player1SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
                         }
                       }}
                     >
-                      <TableCell>{session.fecha}</TableCell>
-                      <TableCell>{session.modo}</TableCell>
+                      <TableCell>{session.date}</TableCell>
+                      <TableCell>{session.game_mode}</TableCell>
+                      <TableCell>{session.prestige_level}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -143,6 +201,7 @@ const PlayersSessions = (): JSX.Element => {
                   <TableRow>
                     <TableCell>Fecha</TableCell>
                     <TableCell>Modo</TableCell>
+                    <TableCell>Nivel de Dificultad</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -152,14 +211,15 @@ const PlayersSessions = (): JSX.Element => {
                       onClick={() => { setPlayer2SelectedSession(session.id); }}
                       sx={{
                         cursor: 'pointer',
-                        backgroundColor: player2SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
+                        backgroundColor: player2SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
                         '&:hover': {
-                          backgroundColor: player2SelectedSession === session.id ? 'rgba(96, 93, 93, 0.85)' : 'inherit',
+                          backgroundColor: player2SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
                         }
                       }}
                     >
-                      <TableCell>{session.fecha}</TableCell>
-                      <TableCell>{session.modo}</TableCell>
+                      <TableCell>{session.date}</TableCell>
+                      <TableCell>{session.game_mode}</TableCell>
+                      <TableCell>{session.prestige_level}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -171,14 +231,14 @@ const PlayersSessions = (): JSX.Element => {
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button
             variant="contained"
-            disabled={!player1SelectedSession || !player2SelectedSession || !mode}
+            disabled={!player1SelectedSession || !player2SelectedSession || !level || !mode}
             onClick={() => handleSessionsSelect()}
           >
             Comparar
           </Button>
         </Box>
-      </Container>
-    </Box>
+      </Container >
+    </Box >
   );
 };
 
