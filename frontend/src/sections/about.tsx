@@ -65,7 +65,7 @@ const About = (): JSX.Element => {
               </Paper>
               <Paper sx={{ p: 2, flex: 1, minWidth: 250, bgcolor: '#00FF44CC' }}>
                 <Typography variant="h6">Área de entrenadores</Typography>
-                <Typography>Herramientas de gestión y análisis de equipos</Typography>
+                <Typography>Acceso a estadísticas de porteros del club y análisis de rendimiento</Typography>
               </Paper>
             </Box>
           </Box>

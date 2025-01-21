@@ -32,7 +32,7 @@ const Home = (): JSX.Element => {
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{
           backgroundImage: 'url("/home_img.png")',
-          backgroundSize: 'contain',
+          backgroundSize: 'cover',
           backgroundPosition: 'center',
           height: '400px',
           width: '90%',

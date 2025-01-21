@@ -126,13 +126,13 @@ const Register = () => {
           <SportsSoccerIcon />
         </Avatar>
         <Title order={2} mb="md">
-          Register
+          Registrarse
         </Title>
 
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
           <TextInput
             required
-            label="Name"
+            label="Nombre"
             name="name"
             autoComplete="name"
             value={name}
@@ -143,7 +143,7 @@ const Register = () => {
 
           <TextInput
             required
-            label="Email Address"
+            label="Correo electrónico"
             name="email"
             autoComplete="email"
             value={email}
@@ -156,7 +156,7 @@ const Register = () => {
           <TextInput
             required
             name="password"
-            label="Password"
+            label="Contraseña"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -176,7 +176,7 @@ const Register = () => {
                 mb: 1
               }}
             >
-              Select your team
+              Selecciona tu equipo
             </Typography>
             <NativeSelect
               value={selectedTeam}
@@ -245,7 +245,7 @@ const Register = () => {
               }
             }}
           >
-            Register
+            Crear cuenta
           </Button>
         </Box>
       </Paper>

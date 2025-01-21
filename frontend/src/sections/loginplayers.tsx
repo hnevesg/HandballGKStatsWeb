@@ -106,7 +106,7 @@ const LoginPlayers = (): JSX.Element => {
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
           <TextInput
             required
-            label="Email Address"
+            label="Correo Electrónico"
             name="email"
             autoComplete="email"
             value={email}
@@ -119,7 +119,7 @@ const LoginPlayers = (): JSX.Element => {
           <TextInput
             required
             name="password"
-            label="Password"
+            label="Contraseña"
             type="password"
             autoComplete="new-password"
             value={password}
