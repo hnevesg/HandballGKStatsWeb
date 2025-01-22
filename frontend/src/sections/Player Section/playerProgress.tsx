@@ -1,29 +1,23 @@
 import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Select,
-  MenuItem,
-  Avatar,
-  IconButton,
-  FormControl,
-  InputLabel,
-  Button
+  Box, Container, Typography, TextField, Select, MenuItem,
+  Avatar, IconButton, FormControl, Button
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import Navbar from '../../components/navBar';
 import { Player } from '../../types/player';
+import { Session } from '../../types/session';
 
 const PlayerProgress = (): JSX.Element => {
   const [, navigate] = useLocation();
   const [beginDate, setBeginDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [mode, setMode] = useState('Principiante');
+  const [mode, setMode] = useState('Normal');
+  const [level, setLevel] = useState('Principiante');
   const [player, setPlayer] = useState<Player | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
+  const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<any>(null);
 
   useEffect(() => {
     const state = window.history.state;
@@ -32,8 +26,16 @@ const PlayerProgress = (): JSX.Element => {
     }
   }, []);
 
+  const getSessionsProgress = () => {
+    const timestamp = new Date().getTime(); 
+
+    let progressSavesGraphUrl = `http://localhost:8000/api/sessions-saves-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+    setProgressSavesGraphURL(progressSavesGraphUrl);
+ }
+
   const handleStatistics = () => {
-    setShowMetrics(true);
+    getSessionsProgress();
+    //setShowMetrics(true);
   }
 
   return (
@@ -85,9 +87,7 @@ const PlayerProgress = (): JSX.Element => {
                 value={mode}
                 onChange={(e) => setMode(e.target.value)}
               >
-                <MenuItem value="Principiante">Principiante</MenuItem>
-                <MenuItem value="Intermedio">Intermedio</MenuItem>
-                <MenuItem value="Experto">Experto</MenuItem>
+                <MenuItem value="Normal">Normal</MenuItem>
                 <MenuItem value="Posición Fija">Posición Fija</MenuItem>
                 <MenuItem value="Progressivo I">Progresivo I</MenuItem>
                 <MenuItem value="Progressivo II">Progresivo II</MenuItem>
@@ -96,8 +96,22 @@ const PlayerProgress = (): JSX.Element => {
           </Box>
 
           <Box>
+            <Typography variant="subtitle2" gutterBottom>Nivel de dificultad</Typography>
+            <FormControl sx={{ width: 200 }}>
+              <Select
+                value={level}
+                onChange={(e) => setLevel(e.target.value)}
+              >
+                <MenuItem value="Principiante">Principiante</MenuItem>
+                <MenuItem value="Intermedio">Intermedio</MenuItem>
+                <MenuItem value="Experto">Experto</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+
+          <Box>
             <Button variant="contained"
-              disabled={!beginDate || !endDate || endDate < beginDate || !mode}
+              disabled={!beginDate || !endDate || endDate < beginDate || !mode || !level}
               onClick={() => handleStatistics()}
             >
               Buscar sesiones
@@ -105,7 +119,7 @@ const PlayerProgress = (): JSX.Element => {
           </Box>
         </Box>
 
-        {showMetrics && (
+        {(
           <Box sx={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
@@ -119,24 +133,14 @@ const PlayerProgress = (): JSX.Element => {
                 borderRadius: 1,
                 p: 2
               }}>
-                {/* Chart component would go here */}
+                {progressSavesGraphURL && (
+                  <img src={progressSavesGraphURL} alt="Progress Graph" />
+                )}
               </Box>
             </Box>
 
             <Box>
               <Typography variant="h6" gutterBottom>Métrica 2</Typography>
-              <Box sx={{
-                height: 300,
-                border: '1px solid #e0e0e0',
-                borderRadius: 1,
-                p: 2
-              }}>
-                {/* Chart component would go here */}
-              </Box>
-            </Box>
-
-            <Box>
-              <Typography variant="h6" gutterBottom>Métrica 3</Typography>
               <Box sx={{
                 height: 300,
                 border: '1px solid #e0e0e0',

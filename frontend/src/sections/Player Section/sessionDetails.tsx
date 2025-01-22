@@ -74,34 +74,36 @@ const SessionDetails = (): JSX.Element => {
     }, [session]);
 
     useEffect(() => {
-        if (sessionData && session) {
-            let barchartShootsURL = `http://localhost:8000/api/barchart-shoots/${session.id}`;
-            setBarchartShootsURL(barchartShootsURL);
+        if (sessionData.length > 0 && session) {
+            let barchartShootsUrl = `http://localhost:8000/api/barchart-shoots/${session.id}`;
+            setBarchartShootsURL(barchartShootsUrl);
 
-            let barchartSavesURL = `http://localhost:8000/api/barchart-saves/${session.id}`;
-            setBarchartSavesURL(barchartSavesURL);
+            let barchartSavesUrl = `http://localhost:8000/api/barchart-saves/${session.id}`;
+            setBarchartSavesURL(barchartSavesUrl);
 
             let heatmapUrl = `http://localhost:8000/api/heatmap/${session.id}`;
             setHeatmapURL(heatmapUrl);
 
-            let saves = sessionData[0].n_saves;
-            setSavesPercentage((saves / (saves + sessionData[0].n_goals)) * 100);
-        }
-    }, [sessionData]);
-
-    useEffect(() => {
-        if (sessionTracking && session) {
-            //FOR EACH ENTRY -> SUMATORIO
-            let speedL = Math.sqrt(sessionTracking[0].handL_speed_x + sessionTracking[0].handL_speed_y + sessionTracking[0].handL_speed_z);
-            setLhandSpeed(speedL);
-            let speedR = Math.sqrt(sessionTracking[0].handR_speed_x + sessionTracking[0].handR_speed_y + sessionTracking[0].handR_speed_z);
-            setRhandSpeed(speedR);
-
-            let scatterplotUrl = `http://localhost:8000/api/scatteplot/${session.id}`;
+            let scatterplotUrl = `http://localhost:8000/api/scatterplot/${session.id}`;
             setScatterplotURL(scatterplotUrl);
 
+            const saves = sessionData[0].n_saves || 0;
+            const goals = sessionData[0].n_goals || 0;
+            setSavesPercentage((saves / (saves + goals)) * 100 || 0);
         }
-    }, [sessionTracking]);
+    }, [sessionData, session]);
+
+    useEffect(() => {
+        if (sessionTracking.length > 0 && session) {
+            let speedL = 0, speedR = 0;
+            sessionTracking.forEach(data => {
+                speedL += Math.sqrt(data.handL_speed_x + data.handL_speed_y + data.handL_speed_z);
+                speedR += Math.sqrt(data.handR_speed_x + data.handR_speed_y + data.handR_speed_z);
+            });
+            setLhandSpeed(speedL);
+            setRhandSpeed(speedR);
+        }
+    }, [sessionTracking, session]);
 
     const goBack = () => {
         navigate("/player-sessions", {
@@ -150,49 +152,57 @@ const SessionDetails = (): JSX.Element => {
 
                     <Grid item xs={12} md={9}>
                         <Grid container spacing={5}>
-                            {/* Metric 1 - Bar Chart */}
-                            <Grid item xs={12} md={6}>
-                                <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                    <Typography variant="h6" gutterBottom>Métrica 1: Gráfico de Barras de Lanzamientos</Typography>
-                                    {barchartShootsURL && (
-                                        <img src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                    )}
-                                </Paper>
-                            </Grid>
+                            <Grid>
+                                {/* Metric 1 - Bar Chart */}
+                                <Grid item xs={12} md={9}>
+                                    <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                        <Typography variant="h6" gutterBottom>Métrica 1: Gráfico de Barras de Lanzamientos</Typography>
+                                        {barchartShootsURL ? (
+                                            <img id={`barChartShoots-${session?.id}`} src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        ) : (
+                                            <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
+                                        )}
+                                    </Paper>
+                                </Grid>
 
-                            <Grid item xs={12} md={6}>
-                                <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                    <Typography variant="h6" gutterBottom>Gráfico de Barras de Paradas</Typography>
-                                    {barchartSavesURL && (
-                                        <img src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                    )}
-                                </Paper>
+                                <Grid item xs={12} md={9}>
+                                    <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                        <Typography variant="h6" gutterBottom>Gráfico de Barras de Paradas</Typography>
+                                        {barchartSavesURL ? (
+                                            <img id={`barChartSaves-${session?.id}`} src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        ) : (
+                                            <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
+                                        )}
+                                    </Paper>
+                                </Grid>
                             </Grid>
-
                             {/* Metric 2 - HeatMap */}
-                            <Grid item xs={12} md={6} >
-                                <Paper sx={{ p: 2, height: '120%', width: '100%' }}>
+                            <Grid item xs={12} md={9} >
+                                <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                     <Typography variant="h6" gutterBottom>Métrica 2: Mapa de Calor</Typography>
                                     <Box sx={{
                                         position: 'relative',
-                                        height: '90%',
+                                        height: '100%',
                                         width: '90%',
                                         backgroundSize: 'contain',
+                                        paddingBottom: '56.25%', // 16:9 aspect ratio
                                         backgroundPosition: 'center',
                                         backgroundRepeat: 'no-repeat',
                                         alignItems: 'center',
                                         justifyContent: 'center'
                                     }}>
-                                        <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1, top: '15px' }} />
-                                        {heatmapURL && (
-                                            <img src={heatmapURL} alt="Heatmap" style={{ position: 'absolute', width: '118.4%', height: '75.2%', top: '18px', objectFit: 'contain', zIndex: 2 }} />
+                                        <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                                        {heatmapURL ? (
+                                            <img id={`heatmap-${session?.id}`} src={heatmapURL} alt="Heatmap" style={{ position: 'absolute', width: '118.8%', height: '59.5%', top: '10%', objectFit: 'contain', zIndex: 2 }} />
+                                        ) : (
+                                            <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
                                         )}
                                     </Box>
                                 </Paper>
                             </Grid>
 
                             {/* Metric 3 - Summary Table */}
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={9}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                     <Typography variant="h6" gutterBottom>Métrica 3: Datos Resumen</Typography>
                                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
@@ -205,13 +215,14 @@ const SessionDetails = (): JSX.Element => {
                             </Grid>
 
                             {/* Metric 4 - Scatter Plot */}
-                            <Grid item xs={12} md={6}>
+                            <Grid item xs={12} md={9}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                     <Typography variant="h6" gutterBottom>Métrica 4: Gráfico de Dispersión</Typography>
-                                    {/* Scatter plot visualization would go here */}
-                                    {scatterplotURL && (
-                                        <img src={scatterplotURL} alt="Scatter plot" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                    )};
+                                    {scatterplotURL ? (
+                                        <img id={`scatterplot-${session?.id}`} src={scatterplotURL} alt="Scatter plot" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    ) : (
+                                        <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
+                                    )}
                                 </Paper>
                             </Grid>
                         </Grid>
