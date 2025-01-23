@@ -6,18 +6,18 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import Navbar from '../../components/navBar';
-import { Player } from '../../types/player';
-import { Session } from '../../types/session';
+import { User } from '../../types/user';
 
 const PlayerProgress = (): JSX.Element => {
   const [, navigate] = useLocation();
   const [beginDate, setBeginDate] = useState('');
   const [endDate, setEndDate] = useState('');
-  const [mode, setMode] = useState('Normal');
-  const [level, setLevel] = useState('Principiante');
-  const [player, setPlayer] = useState<Player | null>(null);
+  const [mode, setMode] = useState('Default');
+  const [level, setLevel] = useState('Beginner');
+  const [player, setPlayer] = useState<User | null>(null);
+  const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<string | null>(null);
+  const [heatmapURL, setHeatmapURL] = useState<string | null>(null);
   const [showMetrics, setShowMetrics] = useState(false);
-  const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<any>(null);
 
   useEffect(() => {
     const state = window.history.state;
@@ -27,15 +27,20 @@ const PlayerProgress = (): JSX.Element => {
   }, []);
 
   const getSessionsProgress = () => {
-    const timestamp = new Date().getTime(); 
+    if (!player) return;
 
-    let progressSavesGraphUrl = `http://localhost:8000/api/sessions-saves-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+    const timestamp = new Date().getTime();
+
+    let progressSavesGraphUrl = `http://localhost:8000/api/saves-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
     setProgressSavesGraphURL(progressSavesGraphUrl);
- }
+
+    let heatmapUrl = `http://localhost:8000/api/heatmap-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+    setHeatmapURL(heatmapUrl)
+  }
 
   const handleStatistics = () => {
     getSessionsProgress();
-    //setShowMetrics(true);
+    setShowMetrics(true);
   }
 
   return (
@@ -49,7 +54,7 @@ const PlayerProgress = (): JSX.Element => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4">Progreso Personal</Typography>
+          <Typography variant="h4">Personal Progress</Typography>
         </Box>
 
         <Box sx={{
@@ -58,10 +63,12 @@ const PlayerProgress = (): JSX.Element => {
           mb: 4,
           gap: 4
         }}>
-          <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
-          <Typography variant="h6">{player?.name}</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
+            <Typography variant="h6" sx={{ textAlign: 'center', display: '-webkit-box' }}>{player?.name} </Typography>
+          </Box>
           <Box>
-            <Typography variant="subtitle2" gutterBottom>Fecha de inicio</Typography>
+            <Typography variant="subtitle2" gutterBottom>Begin Date</Typography>
             <TextField
               type="date"
               value={beginDate}
@@ -71,7 +78,7 @@ const PlayerProgress = (): JSX.Element => {
           </Box>
 
           <Box>
-            <Typography variant="subtitle2" gutterBottom>Fecha de fin</Typography>
+            <Typography variant="subtitle2" gutterBottom>End Date</Typography>
             <TextField
               type="date"
               value={endDate}
@@ -81,30 +88,30 @@ const PlayerProgress = (): JSX.Element => {
           </Box>
 
           <Box>
-            <Typography variant="subtitle2" gutterBottom>Modo</Typography>
+            <Typography variant="subtitle2" gutterBottom>Mode</Typography>
             <FormControl sx={{ width: 200 }}>
               <Select
                 value={mode}
                 onChange={(e) => setMode(e.target.value)}
               >
-                <MenuItem value="Normal">Normal</MenuItem>
-                <MenuItem value="Posición Fija">Posición Fija</MenuItem>
-                <MenuItem value="Progressivo I">Progresivo I</MenuItem>
-                <MenuItem value="Progressivo II">Progresivo II</MenuItem>
+                <MenuItem value="Default">Default</MenuItem>
+                <MenuItem value="Fixed Position">Fixed Position</MenuItem>
+                <MenuItem value="Progressive I">Progressive I</MenuItem>
+                <MenuItem value="Progressive II">Progressive II</MenuItem>
               </Select>
             </FormControl>
           </Box>
 
           <Box>
-            <Typography variant="subtitle2" gutterBottom>Nivel de dificultad</Typography>
+            <Typography variant="subtitle2" gutterBottom>Difficulty</Typography>
             <FormControl sx={{ width: 200 }}>
               <Select
                 value={level}
                 onChange={(e) => setLevel(e.target.value)}
               >
-                <MenuItem value="Principiante">Principiante</MenuItem>
-                <MenuItem value="Intermedio">Intermedio</MenuItem>
-                <MenuItem value="Experto">Experto</MenuItem>
+                <MenuItem value="Beginner">Beginner</MenuItem>
+                <MenuItem value="Intermediate">Intermediate</MenuItem>
+                <MenuItem value="Expert">Expert</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -114,40 +121,53 @@ const PlayerProgress = (): JSX.Element => {
               disabled={!beginDate || !endDate || endDate < beginDate || !mode || !level}
               onClick={() => handleStatistics()}
             >
-              Buscar sesiones
+              Search sessions
             </Button>
           </Box>
         </Box>
 
-        {(
+
+        {showMetrics && (
           <Box sx={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 4
+            gap: 44
           }}>
             <Box>
-              <Typography variant="h6" gutterBottom>Métrica 1</Typography>
+              <Typography variant="h6" gutterBottom>Metric 1</Typography>
               <Box sx={{
-                height: 300,
+                height: '500%',
+                width: '150%',
                 border: '1px solid #e0e0e0',
                 borderRadius: 1,
                 p: 2
               }}>
-                {progressSavesGraphURL && (
-                  <img src={progressSavesGraphURL} alt="Progress Graph" />
+                {progressSavesGraphURL ? (
+                  <img src={progressSavesGraphURL} alt="Progress Graph" style={{ position: 'absolute', width: '30%', objectFit: 'contain' }} />
+                ) : (
+                  <Typography variant="body2" color="textSecondary">
+                    Loading progress graph...
+                  </Typography>
                 )}
               </Box>
             </Box>
 
             <Box>
-              <Typography variant="h6" gutterBottom>Métrica 2</Typography>
+              <Typography variant="h6" gutterBottom>Metric 2</Typography>
               <Box sx={{
-                height: 300,
+                height: '500%',
+                width: '150%',
                 border: '1px solid #e0e0e0',
                 borderRadius: 1,
+                gap: 4,
                 p: 2
               }}>
-                {/* Chart component would go here */}
+                <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "22%", height: '20%', objectFit: 'contain', zIndex: 1 }} />
+                {heatmapURL ? (
+                  <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '23.5%', height: '60', top: '27%', right: '29.2%', objectFit: 'contain', zIndex: 2 }} />
+                ) : (
+                  <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                )}
               </Box>
             </Box>
           </Box>

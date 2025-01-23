@@ -1,17 +1,7 @@
 import { useState } from 'react';
 import {
-  Button,
-  Box,
-  Avatar,
-  Typography,
-  Container,
-  Paper,
-  Radio,
-  RadioGroup,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  NativeSelect,
+  Button, Box, Avatar, Typography, Container, Paper, Radio,
+  RadioGroup, FormControl, FormControlLabel, IconButton, NativeSelect,
 } from '@mui/material';
 import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -29,9 +19,9 @@ const Register = () => {
   const [selectedTeam, setSelectedTeam] = useState('1');
 
   const teams = [
-    { label: 'BM Granollers', id: 1 },
-    { label: 'FC Barcelona', id: 2 },
-    { label: 'Atlético Valladolid', id: 3 }
+    { label: 'BM Pozuelo Cva', id: 1 },
+    { label: 'BM Caserio', id: 2 },
+    { label: 'BM Alarcos', id: 3 }
   ];
 
   const handleRegister = async () => {
@@ -53,7 +43,7 @@ const Register = () => {
       return;
     }
 
-    if(userType === ''){
+    if (userType === '') {
       alert('Please select a user type');
       return;
     }
@@ -83,10 +73,11 @@ const Register = () => {
       });
       const data = await response.json();
       if (response.ok) {
-        alert('Cuenta creada correctamente');
-        setLocation('/home');
+        alert('Account created correctly');
+        setLocation('/home', {
+          state: { mail:email }
+        });
       } else {
-        //the api returns an http 400 error print the detail
         alert(data.detail || 'Error creating account');
       }
     }
@@ -126,13 +117,13 @@ const Register = () => {
           <SportsSoccerIcon />
         </Avatar>
         <Title order={2} mb="md">
-          Registrarse
+          Sign Up
         </Title>
 
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
           <TextInput
             required
-            label="Nombre"
+            label="Name"
             name="name"
             autoComplete="name"
             value={name}
@@ -143,7 +134,7 @@ const Register = () => {
 
           <TextInput
             required
-            label="Correo electrónico"
+            label="Email"
             name="email"
             autoComplete="email"
             value={email}
@@ -156,7 +147,7 @@ const Register = () => {
           <TextInput
             required
             name="password"
-            label="Contraseña"
+            label="Password"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -176,7 +167,7 @@ const Register = () => {
                 mb: 1
               }}
             >
-              Selecciona tu equipo
+              Choose your team
             </Typography>
             <NativeSelect
               value={selectedTeam}
@@ -221,12 +212,12 @@ const Register = () => {
                 <FormControlLabel
                   value="entrenador"
                   control={<Radio sx={{ color: '#32CD32' }} />}
-                  label="Entrenador@"
+                  label="Staff"
                 />
                 <FormControlLabel
                   value="portero"
                   control={<Radio sx={{ color: '#40E0D0' }} />}
-                  label="Jugador@"
+                  label="Goalkeeper"
                 />
               </RadioGroup>
             </FormControl>
@@ -245,7 +236,7 @@ const Register = () => {
               }
             }}
           >
-            Crear cuenta
+            Create Account
           </Button>
         </Box>
       </Paper>

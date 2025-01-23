@@ -1,13 +1,5 @@
 import { useState } from 'react';
-import {
-  Button,
-  Box,
-  Avatar,
-  Typography,
-  Container,
-  Paper,
-  IconButton
-} from '@mui/material';
+import { Button, Box, Avatar, Typography, Container, Paper, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { useLocation } from 'wouter';
@@ -52,7 +44,9 @@ const LoginStaff = (): JSX.Element => {
       });
       const data = await response.json();
       if (response.ok) {
-        setLocation('/home');
+        setLocation('/home', {
+          state: { mail: email }
+        });
       } else {
         setLoginError(data.detail || 'Login failed');
       }
@@ -101,13 +95,13 @@ const LoginStaff = (): JSX.Element => {
         </Avatar>
 
         <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-          Iniciar Sesión
+          Sign In
         </Typography>
 
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
           <TextInput
             required
-            label="Correo Electrónico"
+            label="Email"
             name="email"
             autoComplete="email"
             value={email}
@@ -120,7 +114,7 @@ const LoginStaff = (): JSX.Element => {
           <TextInput
             required
             name="password"
-            label="Contraseña"
+            label="Password"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -143,7 +137,7 @@ const LoginStaff = (): JSX.Element => {
               }
             }}
           >
-            Entrar
+            Continue
           </Button>
           {loginError && <p>{loginError}</p>}
         </Box>

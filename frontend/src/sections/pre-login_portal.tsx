@@ -7,19 +7,19 @@ import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 const Portal = (): JSX.Element => {
   const cardData = [
     {
-      title: 'Registro y Afiliación',
+      title: 'Create Account',
       color: '#FFD700CC',
       icon: <PersonAddIcon sx={{ fontSize: 40, color: 'white' }} />,
       path: '/register'
     },
     {
-      title: 'Área Privada Jugadores',
+      title: 'Players\' Private Area',
       color: '#00CED1CC',
       icon: <SportsHandballIcon sx={{ fontSize: 40, color: 'white' }} />,
       path: '/loginplayers'
     },
     {
-      title: 'Área Privada Entrenadores',
+      title: 'Staff Private Area',
       color: '#00FF44CC',
       icon: <GroupsIcon sx={{ fontSize: 40, color: 'white' }} />,
       path: '/loginstaff'

@@ -5,16 +5,16 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Player } from '../../types/player';
+import { User } from '../../types/user';
 import Navbar from '../../components/navBar';
 import { Session } from '../../types/session';
 
 const PlayersSessions = (): JSX.Element => {
   const [, navigate] = useLocation();
-  const [player1, setPlayer1] = useState<Player>();
-  const [player2, setPlayer2] = useState<Player>();
-  const [mode, setMode] = useState('Normal');
-  const [level, setLevel] = useState('Principiante');
+  const [player1, setPlayer1] = useState<User>();
+  const [player2, setPlayer2] = useState<User>();
+  const [mode, setMode] = useState('Default');
+  const [level, setLevel] = useState('Beginner');
   const [player1SelectedSession, setPlayer1SelectedSession] = useState<number | null>(null);
   const [player2SelectedSession, setPlayer2SelectedSession] = useState<number | null>(null);
   const [player1Sessions, setPlayer1Sessions] = useState<Session[]>([]);
@@ -118,29 +118,29 @@ const PlayersSessions = (): JSX.Element => {
           gap: 3
         }}>
           <Box sx={{ width: 200 }}>
-            <Typography variant="subtitle2" gutterBottom>Modo</Typography>
+            <Typography variant="subtitle2" gutterBottom>Game Mode</Typography>
             <Select
               fullWidth
               value={mode}
               onChange={(e) => setMode(e.target.value)}
             >
-              <MenuItem value="Normal">Normal</MenuItem>
-              <MenuItem value="Posición Fija">Posición Fija</MenuItem>
-              <MenuItem value="Progresivo I">Progresivo I</MenuItem>
-              <MenuItem value="Progresivo II">Progresivo II</MenuItem>
+              <MenuItem value="Default">Default</MenuItem>
+              <MenuItem value="Fixed Position">Fixed Position</MenuItem>
+              <MenuItem value="Progressive I">Progressive I</MenuItem>
+              <MenuItem value="Progressive II">Progressive II</MenuItem>
             </Select>
           </Box>
 
           <Box sx={{ width: 200 }}>
-            <Typography variant="subtitle2" gutterBottom>Nivel de Dificultad</Typography>
+            <Typography variant="subtitle2" gutterBottom>Difficulty</Typography>
             <Select
               fullWidth
               value={level}
               onChange={(e) => setLevel(e.target.value)}
             >
-              <MenuItem value="Principiante">Principiante</MenuItem>
-              <MenuItem value="Intermedio">Intermedio</MenuItem>
-              <MenuItem value="Experto">Experto</MenuItem>
+              <MenuItem value="Beginner">Beginner</MenuItem>
+              <MenuItem value="Intermediate">Intermediate</MenuItem>
+              <MenuItem value="Expert">Expert</MenuItem>
             </Select>
           </Box>
         </Box>
@@ -161,9 +161,9 @@ const PlayersSessions = (): JSX.Element => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Fecha</TableCell>
-                    <TableCell>Modo</TableCell>
-                    <TableCell>Nivel de Dificultad</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Game Mode</TableCell>
+                    <TableCell>Difficulty</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -199,9 +199,9 @@ const PlayersSessions = (): JSX.Element => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Fecha</TableCell>
-                    <TableCell>Modo</TableCell>
-                    <TableCell>Nivel de Dificultad</TableCell>
+                    <TableCell>Date</TableCell>
+                    <TableCell>Game Mode</TableCell>
+                    <TableCell>Difficulty</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

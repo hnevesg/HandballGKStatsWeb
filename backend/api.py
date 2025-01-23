@@ -67,7 +67,8 @@ class SessionData(Base):
     
 class SessionTracking(Base):
     __tablename__ = "sessions_tracking"
-    session_id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer)
     head_pos_x = Column(Integer)
     head_pos_y = Column(Integer)
     head_pos_z = Column(Integer)
@@ -159,14 +160,21 @@ async def login(request: LoginRequest):
     
     
 # ------------------- Players -------------------
-@app.get("/api/players")
-def get_players():
+@app.get("/api/players/{team_id}")
+def get_players(team_id: int):
     """Función para obtener la lista de jugadores."""
     session = SessionLocal()
-    players = session.query(User).filter(User.role == Rol.PORTERO.value).all()
+    players = session.query(User).filter(User.role == Rol.PORTERO.value, User.teamID == team_id).all()
     session.close()
     return players
 
+@app.get("/api/user/{email}")
+def get_user(email: str):
+    """Función para obtener un jugador por email."""
+    session = SessionLocal()
+    player = session.query(User).filter(User.email == email).first()
+    session.close()
+    return player
 
 # ------------------- Sessions -------------------
 @app.get("/api/sessions/{player_id}")
@@ -186,6 +194,14 @@ def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(Non
 
     sessions = sessions.all()
     
+    session.close()
+    return sessions
+
+@app.get("/api/team-sessions/{team_id}")
+def get_team_sessions(team_id: int):
+    """Función para obtener la lista de sesiones de un equipo."""
+    session = SessionLocal()
+    sessions = session.query(Session).filter(User.teamID == team_id).all()
     session.close()
     return sessions
 
@@ -211,27 +227,27 @@ def get_barchart_shoots(session_id: int):
     """Función que crea el gráfico de barras de lanzamientos de una sesión."""
     session_data = get_session_data(session_id)
     
-    shot_results = session_data.shoots_result.split(", ")
+    shoot_results = session_data.shoots_result.split(", ")
     
     goals = 0
     saves = 0
     
-    for result in shot_results:
+    for result in shoot_results:
         if result == "goal":
             goals += 1
         else:
             saves += 1
     
-    labels = ['Goles', 'Paradas']
+    labels = ['Goals', 'Saves']
     x = np.arange(len(labels))
     width = 0.15
     pyplot.figure(figsize=(6, 4))
 
-    pyplot.bar(x[0], goals, width, label='Goles', color='red')
-    pyplot.bar(x[1], saves, width, label='Paradas', color='blue')
+    pyplot.bar(x[0], goals, width, label='Goals', color='red')
+    pyplot.bar(x[1], saves, width, label='Saves', color='blue')
     
-    pyplot.ylabel('Cantidad de lanzamientos')
-    pyplot.title('Goles y paradas por zonas')
+    pyplot.ylabel('Nº of shoots')
+    pyplot.title('Goals and saves per zone')
     pyplot.xticks(x, labels, rotation=45, ha='right')
     pyplot.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
     pyplot.legend()
@@ -285,13 +301,12 @@ def get_barchart_saves(session_id: int):
     width = 0.35
     pyplot.figure(figsize=(12, 6))
 
-    pyplot.bar(x, matrix, width, label='Paradas', color='blue')
+    pyplot.bar(x, matrix, width, label='Saves', color='blue')
     
-    pyplot.ylabel('Cantidad de lanzamientos')
-    pyplot.title('Paradas por partes del cuerpo')
+    pyplot.ylabel('Nº of shoots')
+    pyplot.title('Saves per bodypart')
     pyplot.xticks(x, labels, rotation=45, ha='right')
     pyplot.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
-    pyplot.legend()
 
     pyplot.tight_layout()
 
@@ -307,8 +322,8 @@ def get_heatmap(session_id: int):
     """Funcion que crea el heatmap de una sesion"""
     session_data = get_session_data(session_id)
 
-    shot_results = session_data.shoots_result.split(", ") 
-    shot_zones = session_data.shoots_final_zone.split(", ") 
+    shoot_results = session_data.shoots_result.split(", ") 
+    shoot_zones = session_data.shoots_final_zone.split(", ") 
 
     zone_map = {
         "escuadra izquierda": (0, 0),
@@ -326,7 +341,7 @@ def get_heatmap(session_id: int):
     goal_matrix = np.zeros((2, 5))
     save_matrix = np.zeros((2, 5))
     
-    for result, zone in zip(shot_results, shot_zones):
+    for result, zone in zip(shoot_results, shoot_zones):
         if zone in zone_map:
             x, y = zone_map[zone]
             if result == "goal":
@@ -341,9 +356,8 @@ def get_heatmap(session_id: int):
     heatmap_data = np.ma.masked_array(goal_matrix, mask=mask)
             
     pyplot.figure(figsize=(8, 2))
-    heatmap = pyplot.imshow(heatmap_data, cmap='coolwarm', interpolation='nearest') #cmap='hot',
-    #heatmap.cmap.set_bad('white')
-
+    pyplot.imshow(heatmap_data, cmap='coolwarm', interpolation='nearest') #cmap='hot',
+    
     for i in range(2):
         for j in range(5):
             value = f"{int(goal_matrix[i, j])}/{int(total_matrix[i, j])}" if total_matrix[i, j] > 0 else "0/0"
@@ -351,10 +365,6 @@ def get_heatmap(session_id: int):
     
     pyplot.yticks([])
     pyplot.xticks([])
-
-    color_bar = pyplot.colorbar(heatmap)
-    color_bar.set_label("Proporción de Goles")
-    color_bar.set_ticks(range(int(goal_matrix.max()) + 1)) 
     
     buffer = BytesIO()
     pyplot.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0, transparent=True)
@@ -387,15 +397,14 @@ def get_scatterplot(session_id: int):
     head_pos_x = np.array(head_pos_x)
     head_pos_y = np.array(head_pos_y)
    
-    pyplot.scatter(head_pos_x, head_pos_y, label="Cabeza", color='red', alpha=0.7)
-    pyplot.scatter(handR_pos_x, handR_pos_y, label="Mano Derecha", color='blue', alpha=0.7)
-    pyplot.scatter(handL_pos_x, handL_pos_y, label="Mano Izquierda", color='green', alpha=0.7)
+    pyplot.scatter(head_pos_x, head_pos_y, label="Head", color='red', alpha=0.7)
+    pyplot.scatter(handR_pos_x, handR_pos_y, label="Right Hand", color='blue', alpha=0.7)
+    pyplot.scatter(handL_pos_x, handL_pos_y, label="Left Hand", color='green', alpha=0.7)
 
-    pyplot.xlabel('Ancho')
-    pyplot.ylabel('Alto')
-    pyplot.title('Posición de las manos y la cabeza')
+    pyplot.xlabel('Width')
+    pyplot.ylabel('Height')
+    pyplot.title('Head and Hands Position')
     pyplot.legend()    
-    pyplot.tight_layout()
 
     buffer = BytesIO()
     pyplot.savefig(buffer, format='png', bbox_inches='tight')
@@ -404,77 +413,52 @@ def get_scatterplot(session_id: int):
         
     return Response(buffer.getvalue(), media_type="image/png")
     
-@app.get("/api/sessions-saves-progress/{player_id}")
-def get_session_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
+@app.get("/api/saves-progress/{player_id}")
+def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
    
     i = 0
     saves = []
     session_dates = []
-   
-    for session in sessions:
-        data = get_session_data(session.id)
-        saves.append(data.n_saves)
-        session_dates.append(session.date)
-        i += 1
     
-    pyplot.plot(session_dates, saves, label='Paradas', color='blue', marker='o', linestyle='-')
-    pyplot.ylim(0, max(saves)+1) 
-    pyplot.yticks(range(0, max(saves) + 1))  
-    pyplot.ylabel('Cantidad de paradas')
-    pyplot.xlabel('Fecha de las sesiones')
-    pyplot.xticks(ticks=session_dates, labels=session_dates, rotation=45, ha='right')
-    pyplot.legend()
-    
-    pyplot.tight_layout()
-
-    buffer = BytesIO()
-    pyplot.savefig(buffer, format='png', bbox_inches='tight')
-    pyplot.close()
-    buffer.seek(0)
+    if sessions:
+        for session in sessions:
+            logging.info(f"Session: {session.id}")
+            data = get_session_data(session.id)
+            saves.append(data.n_saves)
+            session_dates.append(session.date)
+            i += 1
         
-    return Response(buffer.getvalue(), media_type="image/png")
+        pyplot.plot(session_dates, saves, label='Saves', color='blue', marker='o', linestyle='-')
+        pyplot.ylim(0, max(saves)+1) 
+        pyplot.yticks(range(0, max(saves) + 1))  
+        pyplot.ylabel('Nº of saves')
+        pyplot.xlabel('Sessions Dates')
+        pyplot.xticks(ticks=session_dates, labels=session_dates, rotation=45, ha='right')
+        pyplot.legend()
+        
+        pyplot.tight_layout()
 
-@app.get("/api/sessions-goals-progress/{player_id}")
-def get_session_goals_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
+        buffer = BytesIO()
+        pyplot.savefig(buffer, format='png', bbox_inches='tight')
+        pyplot.close()
+        buffer.seek(0)
+            
+        return Response(buffer.getvalue(), media_type="image/png")
+    else:
+        raise HTTPException(status_code=404, detail="No se encontraron sesiones")
+
+@app.get("/api/heatmap-progress/{player_id}")
+def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
 
-    i = 0
-    goals = []
-    session_dates = []
-  
+    shoot_results = []
+    shoot_zones = []
     for session in sessions:
         data = get_session_data(session.id)
-        goals.append(data.n_goals)
-        session_dates.append(session.date)
-        i += 1
-    
-    pyplot.plot(session_dates, goals, label='Goles', color='orange', marker='x', linestyle='-')
-
-    pyplot.ylim(0, max(goals)+1)
-    pyplot.ylabel('Cantidad de goles')
-    pyplot.xlabel('Fecha de las sesiones')
-    pyplot.yticks(range(0, max(goals) + 1))  
-    pyplot.xticks(ticks=session_dates, labels=session_dates, rotation=45, ha='right')
-    pyplot.legend()
-    
-    pyplot.tight_layout()
-
-    buffer = BytesIO()
-    pyplot.savefig(buffer, format='png', bbox_inches='tight')
-    pyplot.close()
-    buffer.seek(0)
-        
-    return Response(buffer.getvalue(), media_type="image/png")
-
-@app.get("/api/heatmap-progress/{session_id}")
-def get_heatmap(session_id: int):
-    """PENDIENTE"""
-    session_data = get_session_data(session_id)
-
-    shot_results = session_data.shoots_result.split(", ") 
-    shot_zones = session_data.shoots_final_zone.split(", ") 
+        shoot_results.append(data.shoots_result.split(", "))
+        shoot_zones.append(data.shoots_final_zone.split(", "))
 
     zone_map = {
         "escuadra izquierda": (0, 0),
@@ -492,13 +476,14 @@ def get_heatmap(session_id: int):
     goal_matrix = np.zeros((2, 5))
     save_matrix = np.zeros((2, 5))
     
-    for result, zone in zip(shot_results, shot_zones):
-        if zone in zone_map:
-            x, y = zone_map[zone]
-            if result == "goal":
-                goal_matrix[x, y] += 1
-            else:
-                save_matrix[x, y] += 1
+    for results, zones in zip(shoot_results, shoot_zones):
+        for zone, result in zip(zones, results):
+            if zone in zone_map:
+                x, y = zone_map[zone]
+                if result == "goal":
+                    goal_matrix[x, y] += 1
+                else:
+                    save_matrix[x, y] += 1
 
     total_matrix = goal_matrix + save_matrix
 
@@ -519,7 +504,7 @@ def get_heatmap(session_id: int):
     pyplot.xticks([])
 
     color_bar = pyplot.colorbar(heatmap)
-    color_bar.set_label("Proporción de Goles")
+    color_bar.set_label("Goals Proportion")
     color_bar.set_ticks(range(int(goal_matrix.max()) + 1)) 
     
     buffer = BytesIO()
@@ -540,14 +525,14 @@ def get_barchart_comparison(session_id1: int, session_id2: int):
     width = 0.15
     pyplot.figure(figsize=(6, 4))
     
-    pyplot.bar(x[0], sessionP1.n_saves, width, label='Goles', color='red')
-    pyplot.bar(x[0], sessionP1.n_goals, width, bottom=sessionP1.n_saves , label='Paradas', color='blue')
+    pyplot.bar(x[0]-width/2, sessionP1.n_saves, width, label='Saves', color='blue')
+    pyplot.bar(x[0]+width/2, sessionP1.n_goals, width, label='Goals', color='red')
 
-    pyplot.bar(x[1], sessionP2.n_saves, width, color='red')
-    pyplot.bar(x[1], sessionP2.n_goals, width, bottom=sessionP2.n_savess, color='blue')
+    pyplot.bar(x[1]-width/2, sessionP2.n_saves, width, color='blue')
+    pyplot.bar(x[1]+width/2, sessionP2.n_goals, width, color='red')
     
-    pyplot.ylabel('Cantidad de lanzamientos')
-    pyplot.title('Goles y paradas totales')
+    pyplot.ylabel('Nº of shoots')
+    pyplot.title('Total nº of goals & saves')
     pyplot.xticks(x, labels, ha='right')
     pyplot.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
     pyplot.legend()
@@ -561,49 +546,6 @@ def get_barchart_comparison(session_id1: int, session_id2: int):
     
     return Response(buffer.getvalue(), media_type="image/png")
 
-'''
-@app.get("/api/barchart-shoots/{session_id}")
-def get_barchart_shoots(session_id: int):
-    """Función que crea el gráfico de barras de lanzamientos de una sesión."""
-    session_data = get_session_data(session_id)
-    
-    if session_data:
-        first_session_data = session_data[0]
-        shot_results = first_session_data.shoots_result.split(", ")
-    
-    goals = 0
-    saves = 0
-    
-    for result in shot_results:
-        if result == "goal":
-            goals += 1
-        else:
-            saves += 1
-    
-    labels = ['Goles', 'Paradas']
-    x = np.arange(len(labels))
-    width = 0.15
-    pyplot.figure(figsize=(6, 4))
-
-    pyplot.bar(x[0], goals, width, label='Goles', color='red')
-    pyplot.bar(x[1], saves, width, label='Paradas', color='blue')
-    
-    pyplot.ylabel('Cantidad de lanzamientos')
-    pyplot.title('Goles y paradas por zonas')
-    pyplot.xticks(x, labels, rotation=45, ha='right')
-    pyplot.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
-    pyplot.legend()
-
-    pyplot.tight_layout()
-
-    buffer = BytesIO()
-    pyplot.savefig(buffer, format='png', bbox_inches='tight')
-    pyplot.close()
-    buffer.seek(0)
-        
-    return Response(buffer.getvalue(), media_type="image/png")
-
-'''
 def shutdown():
     sys.exit(0)
 

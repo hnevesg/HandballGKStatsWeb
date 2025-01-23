@@ -2,17 +2,17 @@ import { Box, Container, Typography, TextField, Button, Avatar, IconButton, Tool
 import SearchIcon from '@mui/icons-material/Search';
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter'
-import { Player } from '../../types/player';
+import { User } from '../../types/user';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Navbar from '../../components/navBar';
 
 const PlayerSection = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPlayer, setSelectedPlayer] = useState<Player | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null);
   const [, navigate] = useLocation();
   const [currentPage, setCurrentPage] = useState(0);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
 
   const filteredPlayers = useMemo(() => {

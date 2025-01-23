@@ -5,13 +5,13 @@ import {
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LaunchIcon from '@mui/icons-material/Launch';
 import NavBar from '../../components/navBar';
-import { Player } from '../../types/player';
+import { User } from '../../types/user';
 import { Session } from '../../types/session';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 
 const PlayerSessions = (): JSX.Element => {
-    const [player, setPlayer] = useState<Player>();
+    const [player, setPlayer] = useState<User>();
     const [, navigate] = useLocation();
     const [sessions, setSessions] = useState<Session[]>([]);
 
@@ -87,10 +87,10 @@ const PlayerSessions = (): JSX.Element => {
                     <Table>
                         <TableHead>
                             <TableRow>
-                                <TableCell>Fecha</TableCell>
-                                <TableCell>Modo de juego</TableCell>
-                                <TableCell>Dificultad</TableCell>
-                                <TableCell>Detalles</TableCell>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Game Mode</TableCell>
+                                <TableCell>Difficulty</TableCell>
+                                <TableCell>Details</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>

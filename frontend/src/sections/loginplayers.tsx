@@ -1,13 +1,5 @@
 import { JSX, useState } from 'react';
-import {
-  Button,
-  Box,
-  Avatar,
-  Typography,
-  Container,
-  Paper,
-  IconButton
-} from '@mui/material';
+import { Button, Box, Avatar, Typography, Container, Paper, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import { useLocation } from 'wouter';
@@ -18,7 +10,7 @@ const LoginPlayers = (): JSX.Element => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState(''); 
+  const [loginError, setLoginError] = useState('');
   const [, setLocation] = useLocation();
 
   const handleLogin = async () => {
@@ -35,7 +27,6 @@ const LoginPlayers = (): JSX.Element => {
     }
 
     if (email && password) {
-      //call backend api to login
       fetchData()
     }
   };
@@ -47,14 +38,16 @@ const LoginPlayers = (): JSX.Element => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: 
+        body:
           JSON.stringify({ email, password })
       });
       const data = await response.json();
       if (response.ok) {
-        setLocation('/home');
-      }else{
-        setLoginError(data.detail || 'Login failed'); 
+        setLocation('/home', {
+          state: { mail: email }
+        });
+      } else {
+        setLoginError(data.detail || 'Login failed');
       }
     }
     catch (error) {
@@ -100,13 +93,13 @@ const LoginPlayers = (): JSX.Element => {
         </Avatar>
 
         <Typography component="h1" variant="h5" sx={{ mb: 3 }}>
-          Iniciar Sesión
+          Sign In
         </Typography>
 
         <Box component="form" sx={{ mt: 1, width: '100%' }}>
           <TextInput
             required
-            label="Correo Electrónico"
+            label="Email"
             name="email"
             autoComplete="email"
             value={email}
@@ -119,7 +112,7 @@ const LoginPlayers = (): JSX.Element => {
           <TextInput
             required
             name="password"
-            label="Contraseña"
+            label="Password"
             type="password"
             autoComplete="new-password"
             value={password}
@@ -142,9 +135,9 @@ const LoginPlayers = (): JSX.Element => {
               }
             }}
           >
-            Entrar
+            Continue
           </Button>
-          {loginError && <p>{loginError}</p>} 
+          {loginError && <p>{loginError}</p>}
         </Box>
       </Paper>
     </Container>
