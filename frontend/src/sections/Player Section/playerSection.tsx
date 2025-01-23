@@ -12,8 +12,22 @@ const PlayerSection = (): JSX.Element => {
   const [selectedPlayer, setSelectedPlayer] = useState<User | null>(null);
   const [, navigate] = useLocation();
   const [currentPage, setCurrentPage] = useState(0);
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    const state = window.history.state;
+    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    if (response.ok) {
+      const data = await response.json();
+      setLoggedUser(data);
+    }
+  }
 
   const filteredPlayers = useMemo(() => {
     return players.filter(player =>
@@ -21,7 +35,7 @@ const PlayerSection = (): JSX.Element => {
     );
   }, [players, searchQuery]);
 
-  const handlePlayerSelect = (player: Player) => {
+  const handlePlayerSelect = (player: User) => {
     setSelectedPlayer(player);
   };
 
@@ -69,16 +83,11 @@ const PlayerSection = (): JSX.Element => {
 
   const getPlayers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/players', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
       const data = await response.json();
 
       if (response.ok) {
-        const playersWithAvatars = data.map((player: Player) => {
+        const playersWithAvatars = data.map((player: User) => {
           const [firstName = '', lastName = ''] = player.name.split(' ');
           const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
           return { ...player, avatar };

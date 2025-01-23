@@ -13,21 +13,36 @@ import Navbar from '../../components/navBar';
 import { useLocation } from 'wouter';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import { User } from '../../types/user';
 
-interface Player {
+/*interface Player {
   id: number;
   name: string;
   avatar: string;
-}
+}*/
 
 const PlayersComparison = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedPlayers, setSelectedPlayers] = useState<(Player | null)[]>([null, null]);
+  const [selectedPlayers, setSelectedPlayers] = useState<(User | null)[]>([null, null]);
   const [activeField, setActiveField] = useState<number | null>(null);
   const [, setLocation] = useLocation();
   const [currentPage, setCurrentPage] = useState(0);
-  const [players, setPlayers] = useState<Player[]>([]);
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
+  const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    const state = window.history.state;
+    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    if (response.ok) {
+      const data = await response.json();
+      setLoggedUser(data);
+    }
+  }
 
   const filteredPlayers = useMemo(() => {
     return players.filter(player =>
@@ -35,7 +50,7 @@ const PlayersComparison = (): JSX.Element => {
     );
   }, [players, searchQuery]);
 
-  const handlePlayerSelect = (player: Player) => {
+  const handlePlayerSelect = (player: User) => {
     if (selectedPlayers.some(p => p?.id === player.id)) return;
 
     if (activeField !== null) {
@@ -87,16 +102,11 @@ const PlayersComparison = (): JSX.Element => {
 
   const getPlayers = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/players', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
       const data = await response.json();
 
       if (response.ok) {
-        const playersWithAvatars = data.map((player: Player) => {
+        const playersWithAvatars = data.map((player: User) => {
           const [firstName = '', lastName = ''] = player.name.split(' ');
           const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
           return { ...player, avatar };

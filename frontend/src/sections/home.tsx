@@ -62,7 +62,7 @@ const Home = (): JSX.Element => {
     }
   }
 
-  const getPlayerName = (playerId: int) => {
+  const getPlayerName = (playerId: number) => {
     const player = players.find(p => p.id === playerId);
     return player ? player.name : 'Unknown Player';
   };
