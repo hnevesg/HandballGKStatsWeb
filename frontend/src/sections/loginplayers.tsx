@@ -1,4 +1,4 @@
-import { JSX, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { Button, Box, Avatar, Typography, Container, Paper, IconButton } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
@@ -54,6 +54,20 @@ const LoginPlayers = (): JSX.Element => {
       console.error('Error:', error);
     }
   }
+
+    useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleLogin();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [email, password]);
 
   return (
     <Container maxWidth="sm">

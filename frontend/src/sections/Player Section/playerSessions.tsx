@@ -4,19 +4,21 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import LaunchIcon from '@mui/icons-material/Launch';
-import NavBar from '../../components/navBar';
 import { User } from '../../types/user';
 import { Session } from '../../types/session';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
+import Navbar from '../../components/navBar';
+import { formatDate } from '../../components/utils';
 
 const PlayerSessions = (): JSX.Element => {
     const [player, setPlayer] = useState<User>();
     const [, navigate] = useLocation();
     const [sessions, setSessions] = useState<Session[]>([]);
+    const [loggedUser, setLoggedUser] = useState<User | null>(null);
 
     const getSessions = async () => {
-        if(!player) return;
+        if (!player) return;
         try {
             const response = await fetch(`http://localhost:8000/api/sessions/${player.id}`, {
                 method: 'GET',
@@ -40,6 +42,9 @@ const PlayerSessions = (): JSX.Element => {
         if (state?.player) {
             setPlayer(state.player);
         }
+        if (state?.user) {
+            setLoggedUser(state.user)
+        }
     }, []);
 
     useEffect(() => {
@@ -48,22 +53,28 @@ const PlayerSessions = (): JSX.Element => {
 
     const handleSessionSelect = (session: any) => {
         navigate("/statistics-details", {
-            state: { player: window.history.state.player, session: session }
+            state: { player: player, session: session, user: loggedUser }
+        });
+    }
+
+    const goBack = () => {
+        navigate("/player-section", {
+            state: { mail: loggedUser?.email }
         });
     }
 
     return (
         <Box>
-            <NavBar />
+            <Navbar user={loggedUser} />
             <Container maxWidth="md" sx={{ mt: 4 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
                     <IconButton
-                        onClick={() => window.location.href = '/player-section'}
+                        onClick={goBack}
                         sx={{ mr: 2 }}
                     >
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h4" align='center'>Estadísticas</Typography>
+                    <Typography variant="h4" align='center'>Statistics</Typography>
                 </Box>
 
                 <Box sx={{
@@ -83,37 +94,37 @@ const PlayerSessions = (): JSX.Element => {
                     <Typography variant="h6">{player?.name}</Typography>
                 </Box>
 
-                <TableContainer component={Paper}>
-                    <Table>
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Date</TableCell>
-                                <TableCell>Game Mode</TableCell>
-                                <TableCell>Difficulty</TableCell>
-                                <TableCell>Details</TableCell>
+                <TableContainer component={Paper} sx={{maxHeight: '50vh', overflow:'auto'}}>
+                <Table stickyHeader>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell>Date</TableCell>
+                            <TableCell>Game Mode</TableCell>
+                            <TableCell>Difficulty</TableCell>
+                            <TableCell>Details</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {sessions.map((session) => (
+                            <TableRow key={session.id}>
+                                <TableCell>{formatDate(session.date.toString())}</TableCell>
+                                <TableCell>{session.game_mode}</TableCell>
+                                <TableCell>{session.prestige_level}</TableCell>
+                                <TableCell>
+                                    <IconButton size="small"
+                                        onClick={() => handleSessionSelect(session)}
+                                        sx={{ mr: 2 }}
+                                    >
+                                        <LaunchIcon />
+                                    </IconButton>
+                                </TableCell>
                             </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {sessions.map((session) => (
-                                <TableRow key={session.id}>
-                                    <TableCell>{session.date}</TableCell>
-                                    <TableCell>{session.game_mode}</TableCell>
-                                    <TableCell>{session.prestige_level}</TableCell>
-                                    <TableCell>
-                                        <IconButton size="small"
-                                            onClick={() => handleSessionSelect(session)}
-                                            sx={{ mr: 2 }}
-                                        >
-                                            <LaunchIcon />
-                                        </IconButton>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-            </Container>
-        </Box>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+        </Container>
+        </Box >
     );
 };
 

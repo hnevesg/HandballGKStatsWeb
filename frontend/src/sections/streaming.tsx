@@ -4,13 +4,29 @@ import {
   Typography,
   Paper
 } from '@mui/material';
+import { useEffect, useState } from 'react';
 import Navbar from '../components/navBar';
+import { User } from '../types/user';
 
 const Streaming = (): JSX.Element => {
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    const state = window.history.state;
+    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    if (response.ok) {
+      const data = await response.json();
+      setLoggedUser(data);
+    }
+  }
+
   return (
     <Box>
-      <Navbar />
-
+      <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{
           display: 'flex',
@@ -31,13 +47,13 @@ const Streaming = (): JSX.Element => {
             }}
           >
             <Typography variant="h6" gutterBottom>
-              Información Técnica
+              Technical Information
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 2 }}>
               <Typography variant="body1" fontWeight="bold">Bitrate:</Typography>
               <Typography variant="body1">3000 kbps</Typography>
 
-              <Typography variant="body1" fontWeight="bold">Resolución:</Typography>
+              <Typography variant="body1" fontWeight="bold">Resolution:</Typography>
               <Typography variant="body1">1920x1080</Typography>
 
               <Typography variant="body1" fontWeight="bold">Codec:</Typography>

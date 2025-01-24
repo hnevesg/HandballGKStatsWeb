@@ -8,6 +8,7 @@ import { useLocation } from 'wouter';
 import { User } from '../../types/user';
 import Navbar from '../../components/navBar';
 import { Session } from '../../types/session';
+import { formatDate, PlayerTable } from '../../components/utils';
 
 const PlayersSessions = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -19,6 +20,7 @@ const PlayersSessions = (): JSX.Element => {
   const [player2SelectedSession, setPlayer2SelectedSession] = useState<number | null>(null);
   const [player1Sessions, setPlayer1Sessions] = useState<Session[]>([]);
   const [player2Sessions, setPlayer2Sessions] = useState<Session[]>([]);
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
 
   const getSessionsP1 = async () => {
     if (!player1) return;
@@ -72,6 +74,9 @@ const PlayersSessions = (): JSX.Element => {
     if (state?.player2) {
       setPlayer2(state.player2);
     }
+    if (state?.user) {
+      setLoggedUser(state.user)
+    }
   }, []);
 
   useEffect(() => {
@@ -93,22 +98,25 @@ const PlayersSessions = (): JSX.Element => {
         player2: window.history.state.player2,
         session1: player1Sessions.find(s => s.id === player1SelectedSession),
         session2: player2Sessions.find(s => s.id === player2SelectedSession),
+        user: loggedUser
       }
     });
   }
 
   return (
     <Box>
-      <Navbar />
+      <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
           <IconButton
-            onClick={() => navigate('/players-comparison')}
+            onClick={() => navigate('/players-comparison', {
+              state: { mail: loggedUser?.email }
+            })}
             sx={{ mr: 2 }}
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4">Comparación de Jugadores</Typography>
+          <Typography variant="h4">Players Comparison</Typography>
         </Box>
 
         <Box sx={{
@@ -151,81 +159,22 @@ const PlayersSessions = (): JSX.Element => {
           gap: 4,
           mb: 4
         }}>
-          {/* Player 1 Section */}
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ mr: 2, width: 45, height: 45, bgcolor: '#00CED1' }}>GK1</Avatar>
-              <Typography variant="h6">{player1?.name}</Typography>
-            </Box>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Game Mode</TableCell>
-                    <TableCell>Difficulty</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {player1Sessions.map((session) => (
-                    <TableRow
-                      key={session.id}
-                      onClick={() => { setPlayer1SelectedSession(session.id); }}
-                      sx={{
-                        cursor: 'pointer',
-                        backgroundColor: player1SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
-                        '&:hover': {
-                          backgroundColor: player1SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
-                        }
-                      }}
-                    >
-                      <TableCell>{session.date}</TableCell>
-                      <TableCell>{session.game_mode}</TableCell>
-                      <TableCell>{session.prestige_level}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
-
-          {/* Player 2 Section */}
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <Avatar sx={{ mr: 2, width: 45, height: 45, bgcolor: '#00CED1' }}>GK2</Avatar>
-              <Typography variant="h6">{player2?.name}</Typography>
-            </Box>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Date</TableCell>
-                    <TableCell>Game Mode</TableCell>
-                    <TableCell>Difficulty</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {player2Sessions.map((session) => (
-                    <TableRow
-                      key={session.id}
-                      onClick={() => { setPlayer2SelectedSession(session.id); }}
-                      sx={{
-                        cursor: 'pointer',
-                        backgroundColor: player2SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
-                        '&:hover': {
-                          backgroundColor: player2SelectedSession === session.id ? 'rgb(0, 206, 209)' : 'inherit',
-                        }
-                      }}
-                    >
-                      <TableCell>{session.date}</TableCell>
-                      <TableCell>{session.game_mode}</TableCell>
-                      <TableCell>{session.prestige_level}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Box>
+          {/* Player 1 Table */}
+          <PlayerTable
+            playerName={player1?.name || 'Player 1'}
+            playerAvatar="GK1"
+            playerSessions={player1Sessions}
+            selectedSession={player1SelectedSession}
+            setSelectedSession={setPlayer1SelectedSession}
+          />
+          {/* Player 2 Table */}
+          <PlayerTable
+            playerName={player2?.name || 'Player 2'}
+            playerAvatar="GK2"
+            playerSessions={player2Sessions}
+            selectedSession={player2SelectedSession}
+            setSelectedSession={setPlayer2SelectedSession}
+          />
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>

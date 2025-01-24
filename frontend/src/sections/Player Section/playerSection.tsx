@@ -6,6 +6,7 @@ import { User } from '../../types/user';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Navbar from '../../components/navBar';
+import { Rol } from '../../types/rol';
 
 const PlayerSection = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +43,7 @@ const PlayerSection = (): JSX.Element => {
   const SetLocationToSessions = () => {
     if (selectedPlayer) {
       navigate("/player-sessions", {
-        state: { player: selectedPlayer }
+        state: { player: selectedPlayer, user: loggedUser }
       });
     }
   };
@@ -50,7 +51,7 @@ const PlayerSection = (): JSX.Element => {
   const SetLocationToProgress = () => {
     if (selectedPlayer) {
       navigate("/player-progress", {
-        state: { player: selectedPlayer }
+        state: { player: selectedPlayer, user: loggedUser }
       });
     }
   };
@@ -82,11 +83,25 @@ const PlayerSection = (): JSX.Element => {
   };
 
   const getPlayers = async () => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
-      const data = await response.json();
+    if (!loggedUser) return;
+    let response;
+    if (loggedUser?.role == Rol.PORTERO) {
+      response = await fetch(`http://localhost:8000/api/user/${loggedUser?.email}`);
+      const data = await response?.json();
+      if (response?.ok) {
+        const [firstName = '', lastName = ''] = data.name.split(' ');
+        const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+        const playerWithAvatar = { ...data, avatar };
 
-      if (response.ok) {
+        setPlayers([playerWithAvatar]);
+      } else {
+        console.error('Failed to fetch player:', data.message);
+      }
+    } else if (loggedUser?.role == Rol.ENTRENADOR) {
+      response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
+      const data = await response?.json();
+
+      if (response?.ok) {
         const playersWithAvatars = data.map((player: User) => {
           const [firstName = '', lastName = ''] = player.name.split(' ');
           const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -95,28 +110,26 @@ const PlayerSection = (): JSX.Element => {
 
         setPlayers(playersWithAvatars);
       } else {
-        console.error('Failed to fetch players:', data.message || response.statusText);
+        console.error('Failed to fetch players:', data.message);
       }
-    } catch (error) {
-      console.error('Error fetching players:', error);
     }
   };
 
   useEffect(() => {
     getPlayers();
-  }, []);
+  }, [loggedUser]);
 
   return (
     <Box>
-      <Navbar />
+      <Navbar user={loggedUser} />
       <Container maxWidth="md" sx={{ mt: 8 }}>
         <Typography variant="h4" sx={{ textAlign: 'center', mb: 4 }}>
-          Selecciona un jugador
+          Select a player
         </Typography>
 
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 6 }}>
           <TextField
-            placeholder="Buscar jugadores..."
+            placeholder="Search player..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             variant="outlined"
@@ -205,14 +218,14 @@ const PlayerSection = (): JSX.Element => {
             disabled={!selectedPlayer}
             onClick={SetLocationToSessions}
           >
-            Ver estadísticas
+            View Statistics
           </Button>
           <Button
             variant="outlined"
             disabled={!selectedPlayer}
             onClick={SetLocationToProgress}
           >
-            Ver progreso
+            View progress
           </Button>
         </Box>
       </Container>

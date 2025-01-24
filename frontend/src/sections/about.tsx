@@ -4,13 +4,30 @@ import {
   Container,
   Paper,
 } from '@mui/material';
+import { useEffect, useState } from 'react';
 import Navbar from '../components/navBar';
+import { User } from '../types/user';
 
 const About = (): JSX.Element => {
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    getUser();
+  }, []);
+
+  const getUser = async () => {
+    const state = window.history.state;
+    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    if (response.ok) {
+      const data = await response.json();
+      setLoggedUser(data);
+    }
+  }
+
   return (
     <Box>
       <Box>
-        <Navbar />
+        <Navbar user={loggedUser} />
       </Box>
       <Box
         sx={{
@@ -27,10 +44,10 @@ const About = (): JSX.Element => {
         }}
       >
         <Typography variant="h3" gutterBottom>
-          Sobre nosotros
+          About us
         </Typography>
-        <Typography variant="subtitle1">
-          Aprende más información sobre nuestra plataforma de estadísticas de balonmano
+        <Typography variant="h5">
+          Learn more about our handball statistics platform:
         </Typography>
       </Box>
 
@@ -47,35 +64,35 @@ const About = (): JSX.Element => {
 
           <Box>
             <Typography variant="h5" gutterBottom>
-              Nuestra Misión
+              ● Our mission
             </Typography>
             <Typography variant="body1">
-              El propósito de esta app web es proporcionar estadísticas y análisis completos de balonmano para jugadores y entrenadores. Nuestra plataforma ayuda a los equipos a mejorar su rendimiento a través de información basada en datos.
+              The purpose of this web app is to provide statistics and complete handball analisys for goalkeepers and staff. We believe that this information, based on the data from sessions, will help improve the temas' performance.
             </Typography>
           </Box>
 
           <Box>
             <Typography variant="h5" gutterBottom>
-              Características de la plataforma
+              ● Platform Characteristics
             </Typography>
             <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-              <Paper sx={{ p: 2, flex: 1, minWidth: 250, bgcolor: '#00CED1CC' }}>
-                <Typography variant="h6">Área de jugadores</Typography>
-                <Typography>Acceso a estadísticas personales y datos de rendimiento</Typography>
+              <Paper sx={{ p: 2, flex: 1, bgcolor: '#00CED1CC' }}>
+                <Typography variant="h6" align='center'>Player's Area</Typography>
+                <Typography align='center'>Access to personal statistics & performance data</Typography>
               </Paper>
-              <Paper sx={{ p: 2, flex: 1, minWidth: 250, bgcolor: '#00FF44CC' }}>
-                <Typography variant="h6">Área de entrenadores</Typography>
-                <Typography>Acceso a estadísticas de porteros del club y análisis de rendimiento</Typography>
+              <Paper sx={{ p: 2, flex: 1, bgcolor: '#00FF44CC' }}>
+                <Typography variant="h6" align='center'>Staff Area</Typography>
+                <Typography align='center'>Access to club's goalkeepers statistics, comparisons & performance data</Typography>
               </Paper>
             </Box>
           </Box>
 
           <Box>
             <Typography variant="h5" gutterBottom>
-              Contáctanos
+              ● Contact Us
             </Typography>
             <Typography variant="body1">
-              ¿Tienes dudas o sugerencias? Ponte en contacto con nosotros a través de nuestro  <a href="mailto:  @helena.neves@alu.uclm.es">correo electrónico </a>
+              Any question or tip? Contact us through our <a href="mailto:  @helena.neves@alu.uclm.es">e-mail address </a> 
             </Typography>
           </Box>
         </Paper>

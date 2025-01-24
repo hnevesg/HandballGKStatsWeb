@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Button, Box, Avatar, Typography, Container, Paper, Radio,
   RadioGroup, FormControl, FormControlLabel, IconButton, NativeSelect,
@@ -75,7 +75,7 @@ const Register = () => {
       if (response.ok) {
         alert('Account created correctly');
         setLocation('/home', {
-          state: { mail:email }
+          state: { mail: email }
         });
       } else {
         alert(data.detail || 'Error creating account');
@@ -85,6 +85,21 @@ const Register = () => {
       console.error('Error:', error);
     }
   }
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleRegister();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [email, password]);
+
   return (
     <Container maxWidth="sm">
       <Paper

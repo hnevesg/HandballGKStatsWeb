@@ -14,6 +14,8 @@ import { useLocation } from 'wouter';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { User } from '../../types/user';
+import { Rol } from '../../types/rol';
+import { Center } from '@mantine/core';
 
 /*interface Player {
   id: number;
@@ -69,7 +71,7 @@ const PlayersComparison = (): JSX.Element => {
   const SetLocationToSessions = () => {
     if (selectedPlayers[0] && selectedPlayers[1]) {
       setLocation("/players-sessions", {
-        state: { player1: selectedPlayers[0], player2: selectedPlayers[1] }
+        state: { player1: selectedPlayers[0], player2: selectedPlayers[1], user: loggedUser }
       });
     }
   };
@@ -101,6 +103,7 @@ const PlayersComparison = (): JSX.Element => {
   };
 
   const getPlayers = async () => {
+    if (loggedUser?.role != Rol.ENTRENADOR) return;
     try {
       const response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
       const data = await response.json();
@@ -123,19 +126,31 @@ const PlayersComparison = (): JSX.Element => {
 
   useEffect(() => {
     getPlayers();
-  }, []);
+  }, [loggedUser]);
 
   return (
     <Box>
-      <Navbar />
+      <Navbar user={loggedUser} />
       <Container maxWidth="md" sx={{ mt: 8 }}>
         <Typography variant="h4" sx={{ textAlign: 'center', mb: 4 }}>
-          Comparación de Jugadores
+          Players Comparison
         </Typography>
+
+        {loggedUser?.role === Rol.PORTERO && (
+          <Typography variant="body1" align='center' color="error" sx={{
+            backgroundColor: '#fce4ec',
+            border: '1px solid #f8bbd0',
+            borderRadius: '8px',
+            padding: '12px 16px', 
+            marginBottom: '24px', 
+            fontWeight: 600, 
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+          }}>Since you are a player, you don't have access to this section.</Typography>
+        )}
 
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 6 }}>
           <TextField
-            placeholder="Buscar jugadores..."
+            placeholder="Search player..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             variant="outlined"
@@ -221,7 +236,7 @@ const PlayersComparison = (): JSX.Element => {
           mb: 4
         }}>
           <TextField
-            label="Jugador 1"
+            label="Player 1"
             value={selectedPlayers[0]?.name || ''}
             onClick={() => setActiveField(0)}
             sx={{
@@ -231,7 +246,7 @@ const PlayersComparison = (): JSX.Element => {
             }}
           />
           <TextField
-            label="Jugador 2"
+            label="Player 2"
             value={selectedPlayers[1]?.name || ''}
             onClick={() => setActiveField(1)}
             sx={{
@@ -248,7 +263,7 @@ const PlayersComparison = (): JSX.Element => {
             disabled={!selectedPlayers[0] || !selectedPlayers[1]}
             onClick={SetLocationToSessions}
           >
-            Continuar
+            Continue
           </Button>
         </Box>
       </Container>

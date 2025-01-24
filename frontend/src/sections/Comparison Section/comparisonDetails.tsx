@@ -25,6 +25,7 @@ const ComparisonDetails = (): JSX.Element => {
   const [RhandSpeedP1, setRhandSpeedP1] = useState<number>()
   const [LhandSpeedP2, setLhandSpeedP2] = useState<number>()
   const [RhandSpeedP2, setRhandSpeedP2] = useState<number>()
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
 
   useEffect(() => {
     const state = window.history.state;
@@ -40,11 +41,14 @@ const ComparisonDetails = (): JSX.Element => {
     if (state?.session2) {
       setSession2(state.session2);
     }
+    if (state?.user) {
+      setLoggedUser(state.user)
+    }
   }, []);
 
   const goBack = () => {
     navigate("/players-sessions", {
-      state: { player1, player2 }
+      state: { player1, player2, user: loggedUser }
     });
   }
 
@@ -114,7 +118,7 @@ const ComparisonDetails = (): JSX.Element => {
 
   return (
     <Box>
-      <Navbar />
+      <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
           <IconButton
@@ -147,7 +151,7 @@ const ComparisonDetails = (): JSX.Element => {
             <Typography>{player1?.name}</Typography>
           </Box>
 
-          <Typography variant="h6" sx={{ mx: 2 }}>vs</Typography>
+<Typography variant="h6" sx={{ mx: 1 }}>vs</Typography> 
 
           <Box sx={{ textAlign: 'center' }}>
             <Avatar
@@ -198,21 +202,21 @@ const ComparisonDetails = (): JSX.Element => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell>Metric</TableCell>
-                      <TableCell align="right">Player 1</TableCell>
-                      <TableCell align="right">Player 2</TableCell>
+                      <TableCell align='center'>Metric</TableCell>
+                      <TableCell align="center">Player 1</TableCell>
+                      <TableCell align="center">Player 2</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     <TableRow>
-                      <TableCell component="th" scope="row">Left Hand Speed</TableCell>
-                      <TableCell align="right">{LhandSpeedP1?.toFixed(3)}s</TableCell>
-                      <TableCell align="right">{LhandSpeedP2?.toFixed(3)}s</TableCell>
+                      <TableCell component="th" scope="row" align="center">Left Hand Speed</TableCell>
+                      <TableCell align="center">{LhandSpeedP1?.toFixed(3)}s</TableCell>
+                      <TableCell align="center">{LhandSpeedP2?.toFixed(3)}s</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell component="th" scope="row">Right Hand Speed</TableCell>
-                      <TableCell align="right">{RhandSpeedP1?.toFixed(3)}s</TableCell>
-                      <TableCell align="right">{RhandSpeedP2?.toFixed(3)}s</TableCell>
+                      <TableCell component="th" scope="row" align="center">Right Hand Speed</TableCell>
+                      <TableCell align="center">{RhandSpeedP1?.toFixed(3)}s</TableCell>
+                      <TableCell align="center">{RhandSpeedP2?.toFixed(3)}s</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>

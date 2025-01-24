@@ -17,39 +17,61 @@ const PlayerProgress = (): JSX.Element => {
   const [player, setPlayer] = useState<User | null>(null);
   const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<string | null>(null);
   const [heatmapURL, setHeatmapURL] = useState<string | null>(null);
-  const [showMetrics, setShowMetrics] = useState(false);
+  const [noSessions, setNoSessions] = useState(false);
+  const [loggedUser, setLoggedUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const state = window.history.state;
     if (state?.player) {
       setPlayer(state.player);
     }
+    if (state?.user) {
+      setLoggedUser(state.user)
+    }
   }, []);
 
-  const getSessionsProgress = () => {
+  const handleStatistics = async () => {
     if (!player) return;
 
     const timestamp = new Date().getTime();
 
     let progressSavesGraphUrl = `http://localhost:8000/api/saves-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
-    setProgressSavesGraphURL(progressSavesGraphUrl);
-
     let heatmapUrl = `http://localhost:8000/api/heatmap-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
-    setHeatmapURL(heatmapUrl)
-  }
 
-  const handleStatistics = () => {
-    getSessionsProgress();
-    setShowMetrics(true);
+    try {
+      let savesResponse = await fetch(progressSavesGraphUrl);
+      let heatmapResponse = await fetch(heatmapUrl);
+
+      if (!savesResponse.ok || !heatmapResponse.ok) {
+        setNoSessions(true);
+        setProgressSavesGraphURL(null);
+        setHeatmapURL(null);
+        return;
+      } else {
+        setNoSessions(false);
+        setProgressSavesGraphURL(progressSavesGraphUrl);
+        setHeatmapURL(heatmapUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching session data", error);
+      setNoSessions(true);
+      setProgressSavesGraphURL(null);
+      setHeatmapURL(null);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <Box>
-      <Navbar />
+      <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
           <IconButton
-            onClick={() => navigate('/player-section')}
+            onClick={() => navigate('/player-section', {
+              state: { mail: loggedUser?.email }
+            })}
             sx={{ mr: 2 }}
           >
             <ArrowBackIcon />
@@ -127,53 +149,75 @@ const PlayerProgress = (): JSX.Element => {
         </Box>
 
 
-        {showMetrics && (
-          <Box sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 44
-          }}>
-            <Box>
-              <Typography variant="h6" gutterBottom>Metric 1</Typography>
-              <Box sx={{
-                height: '500%',
-                width: '150%',
-                border: '1px solid #e0e0e0',
-                borderRadius: 1,
-                p: 2
-              }}>
-                {progressSavesGraphURL ? (
-                  <img src={progressSavesGraphURL} alt="Progress Graph" style={{ position: 'absolute', width: '30%', objectFit: 'contain' }} />
-                ) : (
-                  <Typography variant="body2" color="textSecondary">
-                    Loading progress graph...
-                  </Typography>
-                )}
-              </Box>
+        {noSessions ? (
+          <Typography variant="body1" align='center' color="error" sx={{
+            backgroundColor: '#fce4ec',
+            border: '1px solid #f8bbd0',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            marginBottom: '24px',
+            fontWeight: 600,
+            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+          }}>No sessions were found for the selected date range.</Typography>
+        ) : loading ? (
+          <Typography variant="body2" align="center" color="textSecondary">Select a range of dates...</Typography>
+        ) : (<Box sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gap: 44
+        }}>
+          <Box>
+            <Typography variant="h6" gutterBottom>Metric 1</Typography>
+            <Box sx={{
+              height: '500%',
+              width: '150%',
+              border: '1px solid #e0e0e0',
+              borderRadius: 1,
+              p: 2
+            }}>
+              {progressSavesGraphURL ? (
+                <img src={progressSavesGraphURL} alt="Progress Graph" style={{ position: 'absolute', width: '30%', objectFit: 'contain' }} />
+              ) : (
+                <Typography variant="body2" color="textSecondary">
+                  Loading progress graph...
+                </Typography>
+              )}
             </Box>
+          </Box>
 
-            <Box>
-              <Typography variant="h6" gutterBottom>Metric 2</Typography>
+          <Box>
+            <Typography variant="h6" gutterBottom>Metric 2</Typography>
+            <Box sx={{
+              height: '500%',
+              width: '150%',
+              border: '1px solid #e0e0e0',
+              borderRadius: 1,
+              gap: 4,
+              p: 2
+            }}>
               <Box sx={{
-                height: '500%',
-                width: '150%',
-                border: '1px solid #e0e0e0',
-                borderRadius: 1,
-                gap: 4,
-                p: 2
+                position: 'relative',
+                backgroundSize: 'contain',
+                paddingBottom: '56.25%', // 16:9 aspect ratio
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
-                <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "22%", height: '20%', objectFit: 'contain', zIndex: 1 }} />
+                <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
                 {heatmapURL ? (
-                  <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '23.5%', height: '60', top: '27%', right: '29.2%', objectFit: 'contain', zIndex: 2 }} />
+                  <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '87.8', top: '5%', objectFit: 'contain', zIndex: 2 }} />
                 ) : (
                   <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
                 )}
               </Box>
             </Box>
           </Box>
-        )}
-      </Container>
-    </Box>
+        </Box>
+        )
+        }
+      </Container >
+    </Box >
   );
 };
 

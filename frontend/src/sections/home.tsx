@@ -8,6 +8,7 @@ import { User } from '../types/user';
 import { Session } from '../types/session';
 import { useEffect, useState } from 'react';
 import { Rol } from '../types/rol';
+import { formatDate } from '../components/utils';
 
 const Home = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -51,13 +52,15 @@ const Home = (): JSX.Element => {
       const response = await fetch(`http://localhost:8000/api/sessions/${loggedUser?.id}`);
       if (response.ok) {
         const data = await response.json();
-        setSessions(data);
+        const sortedSessions = data.sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setSessions(sortedSessions.slice(0, 5));
       }
     } else {
       const response = await fetch(`http://localhost:8000/api/team-sessions/${loggedUser?.teamID}`);
       if (response.ok) {
         const data = await response.json();
-        setSessions(data);
+        const sortedSessions = data.sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        setSessions(sortedSessions.slice(0, 5));
       }
     }
   }
@@ -70,7 +73,7 @@ const Home = (): JSX.Element => {
   return (
     <Box>
       <Box>
-        <Navbar />
+        <Navbar user={loggedUser} />
       </Box>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box sx={{
@@ -97,7 +100,9 @@ const Home = (): JSX.Element => {
             Want to know more about the game or creators?
           </Typography>
           <Button
-            onClick={() => navigate('/about')}
+            onClick={() => navigate('/about', {
+              state: { mail: loggedUser?.email }
+            })}
             variant="contained"
             sx={{
               border: '1px solid white',
@@ -132,7 +137,7 @@ const Home = (): JSX.Element => {
                   {sessions.map((session) => (
                     <TableRow key={session.id}>
                       <TableCell>{session.id}</TableCell>
-                      <TableCell>{session.date}</TableCell>
+                      <TableCell>{formatDate(session.date).toString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -161,7 +166,7 @@ const Home = (): JSX.Element => {
                     <TableRow key={session.id}>
                       <TableCell>{session.id}</TableCell>
                       <TableCell>{getPlayerName(session.player_id)}</TableCell>
-                      <TableCell>{session.date}</TableCell>
+                      <TableCell>{formatDate(session.date).toString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

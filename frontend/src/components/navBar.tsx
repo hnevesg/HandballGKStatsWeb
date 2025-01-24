@@ -1,15 +1,16 @@
 // components/Navbar.tsx
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Box, 
-  Button 
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Box,
+  Button
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { useLocation } from 'wouter';
+import { User } from '../types/user';
 
-const Navbar = (): JSX.Element => {
+const Navbar = ({ user }: { user: User | null }): JSX.Element => {
   const [, setLocation] = useLocation();
 
   return (
@@ -17,43 +18,58 @@ const Navbar = (): JSX.Element => {
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Typography variant="h6">Handball GK Stats Web</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button 
+          <Button
             color="inherit"
-            onClick={() => setLocation('/home')}
+            onClick={() => setLocation('/home', {
+              state: { mail: user?.email }
+            })}
+            disabled={!user}
           >
-            Inicio
+            Home
           </Button>
-          <Button 
+          <Button
             color="inherit"
-            onClick={() => setLocation('/player-section')}
+            onClick={() => setLocation('/player-section', {
+              state: { mail: user?.email }
+            })}
+            disabled={!user}
           >
-            Sección de Jugadores
+            Player section
           </Button>
-          <Button 
+          <Button
             color="inherit"
-            onClick={() => setLocation('/players-comparison')}
+            onClick={() => setLocation('/players-comparison', {
+              state: { mail: user?.email }
+            })}
+            disabled={!user}
           >
-            Comparación de Porteros
+            GKs' Comparison
           </Button>
-          <Button 
+          <Button
             color="inherit"
-            onClick={() => setLocation('/streaming')}
+            onClick={() => setLocation('/streaming', {
+              state: { mail: user?.email }
+            })}
+            disabled={!user}
           >
             Streaming
           </Button>
-          <Button 
+          <Button
             color="inherit"
-            onClick={() => setLocation('/about')}
+            onClick={() => setLocation('/about', {
+              state: { mail: user?.email }
+            })}
+            disabled={!user}
           >
             About
           </Button>
         </Box>
-        <Button 
-          variant="outlined" 
+        <Button
+          variant="outlined"
           startIcon={<AccountCircleIcon />}
           onClick={() => setLocation('/')}
         >
-          Cerrar Sesión
+          Log Out
         </Button>
       </Toolbar>
     </AppBar>
