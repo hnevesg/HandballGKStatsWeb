@@ -1,6 +1,8 @@
 import {
   Box, Container, Typography, TextField, Select, MenuItem,
-  Avatar, IconButton, FormControl, Button
+  Avatar, IconButton, FormControl, Button,
+  Grid,
+  Paper
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
@@ -17,6 +19,7 @@ const PlayerProgress = (): JSX.Element => {
   const [player, setPlayer] = useState<User | null>(null);
   const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<string | null>(null);
   const [heatmapURL, setHeatmapURL] = useState<string | null>(null);
+  const [progressTimesGraphURL, setProgressTimesGraphURL] = useState<string | null>(null);
   const [noSessions, setNoSessions] = useState(false);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +41,7 @@ const PlayerProgress = (): JSX.Element => {
 
     let progressSavesGraphUrl = `http://localhost:8000/api/saves-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
     let heatmapUrl = `http://localhost:8000/api/heatmap-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+    let progressTimesGraphUrl = `http://localhost:8000/api/times-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
 
     try {
       let savesResponse = await fetch(progressSavesGraphUrl);
@@ -47,17 +51,20 @@ const PlayerProgress = (): JSX.Element => {
         setNoSessions(true);
         setProgressSavesGraphURL(null);
         setHeatmapURL(null);
+        setProgressTimesGraphURL(null);
         return;
       } else {
         setNoSessions(false);
         setProgressSavesGraphURL(progressSavesGraphUrl);
         setHeatmapURL(heatmapUrl);
+        setProgressTimesGraphURL(progressTimesGraphUrl);
       }
     } catch (error) {
       console.error("Error fetching session data", error);
       setNoSessions(true);
       setProgressSavesGraphURL(null);
       setHeatmapURL(null);
+      setProgressTimesGraphURL(null);
     } finally {
       setLoading(false);
     }
@@ -161,59 +168,76 @@ const PlayerProgress = (): JSX.Element => {
           }}>No sessions were found for the selected date range.</Typography>
         ) : loading ? (
           <Typography variant="body2" align="center" color="textSecondary">Select a range of dates...</Typography>
-        ) : (<Box sx={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
-          gap: 44
-        }}>
-          <Box>
-            <Typography variant="h6" gutterBottom>Metric 1</Typography>
-            <Box sx={{
-              height: '500%',
-              width: '150%',
-              border: '1px solid #e0e0e0',
-              borderRadius: 1,
-              p: 2
-            }}>
-              {progressSavesGraphURL ? (
-                <img src={progressSavesGraphURL} alt="Progress Graph" style={{ position: 'absolute', width: '30%', objectFit: 'contain' }} />
-              ) : (
-                <Typography variant="body2" color="textSecondary">
-                  Loading progress graph...
-                </Typography>
-              )}
-            </Box>
-          </Box>
+        ) : (
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={9}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
 
-          <Box>
-            <Typography variant="h6" gutterBottom>Metric 2</Typography>
-            <Box sx={{
-              height: '500%',
-              width: '150%',
-              border: '1px solid #e0e0e0',
-              borderRadius: 1,
-              gap: 4,
-              p: 2
-            }}>
-              <Box sx={{
-                position: 'relative',
-                backgroundSize: 'contain',
-                paddingBottom: '56.25%', // 16:9 aspect ratio
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
-                {heatmapURL ? (
-                  <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '87.8', top: '5%', objectFit: 'contain', zIndex: 2 }} />
-                ) : (
-                  <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
-                )}
+                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                    <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                      <Typography variant="h6" gutterBottom>Metric 1</Typography>
+                      <Box sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      }}>
+                        {progressSavesGraphURL ? (
+                          <img src={progressSavesGraphURL} alt="Progress Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        ) : (
+                          <Typography variant="body2" color="textSecondary">
+                            Loading progress graph...
+                          </Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                    <Paper sx={{ p: 2, width: '100%' }}>
+                      <Typography variant="h6" gutterBottom>Metric 2</Typography>
+                      <Box sx={{
+                        width: '100%',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      }}>
+                        {progressTimesGraphURL ? (
+                          <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                        ) : (
+                          <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
+                        )}
+                      </Box>
+                    </Paper>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  <Paper sx={{ p: 2, width: '100%' }}>
+                    <Typography variant="h6" gutterBottom>Metric 3</Typography>
+                    <Box sx={{
+                      position: 'relative',
+                      backgroundSize: 'contain',
+                      paddingBottom: '56.25%', // 16:9 aspect ratio
+                      backgroundPosition: 'center',
+                      backgroundRepeat: 'no-repeat',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                    }}>
+                      <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                      {heatmapURL ? (
+                        <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                      )}
+                    </Box>
+                  </Paper>
+                </Box>
               </Box>
-            </Box>
-          </Box>
-        </Box>
+            </Grid>
+          </Grid>
         )
         }
       </Container >

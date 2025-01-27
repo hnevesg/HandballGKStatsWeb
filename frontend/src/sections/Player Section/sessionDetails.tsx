@@ -7,6 +7,7 @@ import { User } from '../../types/user';
 import { SessionData } from '../../types/sessionData';
 import { SessionTracking } from '../../types/sessionTracking';
 import Navbar from '../../components/navBar';
+import { formatDate } from '../../components/utils';
 
 const SessionDetails = (): JSX.Element => {
     const [, navigate] = useLocation();
@@ -17,7 +18,8 @@ const SessionDetails = (): JSX.Element => {
     const [sessionTracking, setSessionTracking] = useState<SessionTracking[]>([]);
     const [barchartSavesURL, setBarchartSavesURL] = useState<any>(null);
     const [heatmapURL, setHeatmapURL] = useState<any>(null);
-    const [scatterplotURL, setScatterplotURL] = useState<any>(null);
+    const [plotTimesURL, setPlotTimesURL] = useState<any>(null);
+    const [scatterplotPositionsURL, setScatterplotPositionsURL] = useState<any>(null);
     const [LhandSpeed, setLhandSpeed] = useState<number>()
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
@@ -88,8 +90,11 @@ const SessionDetails = (): JSX.Element => {
         let heatmapUrl = `http://localhost:8000/api/heatmap/${session?.id}`;
         setHeatmapURL(heatmapUrl);
 
-        let scatterplotUrl = `http://localhost:8000/api/scatterplot/${session?.id}`;
-        setScatterplotURL(scatterplotUrl);
+        let plotTimesUrl = `http://localhost:8000/api/plot-times/${session?.id}`;
+        setPlotTimesURL(plotTimesUrl);
+
+        let scatterplotPositionsUrl = `http://localhost:8000/api/scatterplot-positions/${session?.id}`;
+        setScatterplotPositionsURL(scatterplotPositionsUrl);
     }
 
     useEffect(() => {
@@ -144,14 +149,20 @@ const SessionDetails = (): JSX.Element => {
                             </Box>
 
                             <Paper sx={{ p: 2 }}>
-                                <Typography variant="subtitle2" gutterBottom>Session Date: {session?.date}</Typography>
-                                <Typography variant="subtitle2">• From: {sessionData?.shoots_final_zone}</Typography>
-                                <Box sx={{ mt: 2 }}>
-                                    <Typography>Configuration</Typography>
-                                    <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
-                                    <Typography variant="subtitle2">• Difficulty: {session?.prestige_level}</Typography>
-                                    {/*              <Typography variant="subtitle2">• Tamaño del modelo: {sessionData.configuration.modelSize}</Typography> */}
-                                </Box>
+                                {session ? (
+                                    <>
+                                        <Typography variant="subtitle2" gutterBottom>Session Date: {formatDate(session.date)}</Typography>
+                                        <Typography variant="subtitle2">• From: {sessionData?.shoots_initial_zone}</Typography>
+                                        <Box sx={{ mt: 2 }}>
+                                            <Typography>Configuration</Typography>
+                                            <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
+                                            <Typography variant="subtitle2">• Difficulty: {session?.prestige_level}</Typography>
+                                            {/*              <Typography variant="subtitle2">• Tamaño del modelo: {sessionData.configuration.modelSize}</Typography> */}
+                                        </Box>
+                                    </>
+                                ) : (
+                                    <Typography variant="body2" color="textSecondary">Loading data...</Typography>
+                                )}
                             </Paper>
                         </Box>
                     </Grid>
@@ -226,38 +237,40 @@ const SessionDetails = (): JSX.Element => {
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                     <Typography variant="h6" gutterBottom>Summary of Data</Typography>
                                     <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                                        <Typography fontWeight="bold">• Average Hand Speed</Typography>
-                                        <Typography>Left: {LhandSpeed?.toFixed(3)} s  <br /> Right: {RhandSpeed?.toFixed(3)}s</Typography>
+                                        <Typography fontWeight="bold"> • Session Duration</Typography>
+                                        <Typography>{sessionData?.session_time}s</Typography>
                                         <Typography fontWeight="bold">• Saves percentage</Typography>
                                         <Typography>{savesPercentage}%</Typography>
-                                        <Typography fontWeight="bold">• Session duration</Typography>
-                                        <Typography>s</Typography>
-
+                                        <Typography fontWeight="bold">• Average Hand Speed</Typography>
+                                        <Typography>Left: {LhandSpeed?.toFixed(3)} s  <br /> Right: {RhandSpeed?.toFixed(3)}s</Typography>
                                     </Box>
                                 </Paper>
                             </Box>
 
-                            {/* Metric 4 - Scatter Plot */}
+                            {/* Metric 4 - Plot */}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                    <Typography variant="h6" gutterBottom>Scatter Plot</Typography>
-                                    <Box sx={{
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center'
-                                    }}>
-                                        {scatterplotURL ? (
-                                            <img id={`scatterplot-${session?.id}`} src={scatterplotURL} alt="Scatter plot" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                        ) : (
-                                            <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
-                                        )}
-                                    </Box>
+                                    {plotTimesURL ? (
+                                        <img id={`scatterplot-times-${session?.id}`} src={plotTimesURL} alt="Scatter plot of reaction time" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    ) : (
+                                        <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                    )}
+                                </Paper>
+                            </Box>
+                            {/* Metric 5 - Scatter Plot */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                    {scatterplotPositionsURL ? (
+                                        <img id={`scatterplot-positions-${session?.id}`} src={scatterplotPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    ) : (
+                                        <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
+                                    )}
                                 </Paper>
                             </Box>
                         </Box>
                     </Grid>
                 </Grid>
-            </Container>
+            </Container >
         </Box >
     );
 };

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { User } from '../../types/user';
 import { Session } from '../../types/session';
 import { SessionTracking } from '../../types/sessionTracking';
+import { SessionData } from '../../types/sessionData';
 
 const ComparisonDetails = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -26,6 +27,10 @@ const ComparisonDetails = (): JSX.Element => {
   const [LhandSpeedP2, setLhandSpeedP2] = useState<number>()
   const [RhandSpeedP2, setRhandSpeedP2] = useState<number>()
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
+  const [sessionDataP1, setSessionDataP1] = useState<SessionData | null>();
+  const [sessionDataP2, setSessionDataP2] = useState<SessionData | null>();
+  const [plotTimesP1URL, setPlotTimesP1URL] = useState<any>(null);
+  const [plotTimesP2URL, setPlotTimesP2URL] = useState<any>(null);
 
   useEffect(() => {
     const state = window.history.state;
@@ -50,6 +55,31 @@ const ComparisonDetails = (): JSX.Element => {
     navigate("/players-sessions", {
       state: { player1, player2, user: loggedUser }
     });
+  }
+
+  const getSessionsData = async () => {
+    if (!session1 || !session2) return;
+    try {
+      const response = await fetch(`http://localhost:8000/api/sessionData/${session1.id}`);
+      if (response.ok) {
+        console.log("Session Tracking P1 ANSWER")
+        const dataP1 = await response.json();
+        setSessionDataP1(dataP1);
+      } else {
+        console.error('Error fetching P1 session tracking');
+      }
+
+      let responseP2 = await fetch(`http://localhost:8000/api/sessionData/${session2.id}`);
+      if (responseP2.ok) {
+        console.log("Session Tracking P2 ANSWER")
+        const dataP2 = await responseP2.json();
+        setSessionDataP2(dataP2);
+      } else {
+        console.error('Error fetching P2 session tracking');
+      }
+    } catch (error) {
+      console.error('Error fetching session data', error);
+    }
   }
 
   const getSessionsTracking = async () => {
@@ -86,11 +116,18 @@ const ComparisonDetails = (): JSX.Element => {
 
     let heatmapP2Url = `http://localhost:8000/api/heatmap/${session2?.id}`;
     setHeatmapP2URL(heatmapP2Url);
+
+    let plotTimesP1Url = `http://localhost:8000/api/plot-times/${session1?.id}`;
+    setPlotTimesP1URL(plotTimesP1Url);
+
+    let plotTimesP2Url = `http://localhost:8000/api/plot-times/${session2?.id}`;
+    setPlotTimesP2URL(plotTimesP2Url);
   }
 
   useEffect(() => {
     if (session1 && session2) {
       getSessionsTracking();
+      getSessionsData();
       getPlots();
     }
   }, [session1, session2]);
@@ -151,7 +188,7 @@ const ComparisonDetails = (): JSX.Element => {
             <Typography>{player1?.name}</Typography>
           </Box>
 
-<Typography variant="h6" sx={{ mx: 1 }}>vs</Typography> 
+          <Typography variant="h6" sx={{ mx: 1 }}>vs</Typography>
 
           <Box sx={{ textAlign: 'center' }}>
             <Avatar
@@ -218,6 +255,12 @@ const ComparisonDetails = (): JSX.Element => {
                       <TableCell align="center">{RhandSpeedP1?.toFixed(3)}s</TableCell>
                       <TableCell align="center">{RhandSpeedP2?.toFixed(3)}s</TableCell>
                     </TableRow>
+                    <TableRow>
+                      <TableCell component="th" scope="row" align="center">Session Duration</TableCell>
+                      <TableCell align="center">{sessionDataP1?.session_time}s</TableCell>
+                      <TableCell align="center">{sessionDataP2?.session_time}s</TableCell>
+                    </TableRow>
+
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -228,7 +271,7 @@ const ComparisonDetails = (): JSX.Element => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
             <Paper sx={{ flex: 1, p: 3 }}>
               <Typography variant="h6" gutterBottom>
-                Heat maps
+                Heat Maps
               </Typography>
               <Box sx={{
                 display: 'flex',
@@ -267,6 +310,49 @@ const ComparisonDetails = (): JSX.Element => {
               </Box>
             </Paper>
           </Box>
+
+          {/* Métrica 4 */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+            <Paper sx={{ flex: 1, p: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Reaction Times
+              </Typography>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: 4
+              }}>
+                {/* Player 1 Plot */}
+                <Box sx={{ textAlign: 'center', flex: 1 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Player 1
+                  </Typography>
+                  <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
+                    {plotTimesP1URL ? (
+                      <img src={plotTimesP1URL} alt="Player 1 Reaction Times" style={{ inset: 0, position: 'absolute', width: '100%', height: '100%', objectFit: 'contain', zIndex: 2, top: '5%' }} />
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                    )}
+                  </Box>
+                </Box>
+                {/* Player 2 Plot */}
+                <Box sx={{ textAlign: 'center', flex: 1 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    Player 2
+                  </Typography>
+                  <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
+                    {plotTimesP2URL ? (
+                      <img src={plotTimesP2URL} alt="Player 2 Reaction Times" style={{ inset: 0, position: 'absolute', objectFit: 'contain', width: '100%', height: '100%', zIndex: 2, top: '5%' }} />
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                    )}
+                  </Box>
+                </Box>
+              </Box>
+            </Paper>
+          </Box>
+
         </Box>
       </Container>
     </Box>

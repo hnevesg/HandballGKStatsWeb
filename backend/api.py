@@ -13,9 +13,9 @@ import matplotlib
 matplotlib.use("Agg")
 from matplotlib import pyplot
 from matplotlib.ticker import MaxNLocator
+from matplotlib.colors import LinearSegmentedColormap
 
 from roles import Rol
-from usuario import Usuario
 
 DATABASE_URL = "mysql+pymysql://root:helena@localhost/gk_stats_web"  
 logging.basicConfig(level=logging.INFO)
@@ -55,9 +55,11 @@ class Session(Base):
 class SessionData(Base):
     __tablename__ = "sessions_data"
     session_id = Column(Integer, primary_key=True, index=True)
-    shoots_time = Column(String)
+    session_time = Column(String)
     n_goals = Column(Integer)
     n_saves = Column(Integer)
+    shoots_initial_time = Column(String)
+    shoots_final_time = Column(String)
     shoots_initial_point = Column(String)
     shoots_initial_zone = Column(String)
     shoots_final_point = Column(String)
@@ -109,18 +111,18 @@ def register_user(request: RegisterRequest):
     session = SessionLocal()
     user = session.query(User).filter(User.email == request.email).first()
     if user:
-        raise HTTPException(status_code=400, detail=f"El email {request.email} ya está en uso.")
+        raise HTTPException(status_code=400, detail=f"Email {request.email} already in use.")
     else:
         try: 
             user = User(email=request.email, password=request.password, name=request.name, role=request.user_type, teamID=request.team)
             session.add(user)
             session.commit()
             logging.info(f"User {request.name} registered successfully")
-            return {"message": f"Usuario {request.name} registrado con éxito."}
+            return {"message": f"User {request.name} registered successfully."}
         except Exception as e:
             logging.error(f"Error registering user: {e}")
             session.close()
-            raise HTTPException(status_code=500, detail="Error al registrar el usuario.")
+            raise HTTPException(status_code=500, detail="Error while registrating user.")
         finally:
             session.close()
             
@@ -231,7 +233,7 @@ def get_barchart_shoots(session_id: int):
     saves = 0
     
     for result in shoot_results:
-        if result == "goal":
+        if result == "Gol Recibido":
             goals += 1
         else:
             saves += 1
@@ -267,25 +269,25 @@ def get_barchart_saves(session_id: int):
     save_bodypart = session_data.saves_bodypart.split(", ")
                 
     zone_map = {
-        "Left Hand": 0,
-        "Left Forearm": 1,
-        "Left Upperarm": 2,
-        "Right Hand": 3,
-        "Right Forearm": 4,
-        "Right Upperarm": 5,
+        "LeftHand": 0,
+        "LeftForearm": 1,
+        "LeftUpperarm": 2,
+        "RightHand": 3,
+        "RightForearm": 4,
+        "RightUpperarm": 5,
         "Trunk": 6,
         "Head": 7,
     }
     
     labels = [
-        "Mano Izquierda",
-        "Antebrazo Izquierdo",
-        "Parte Superior del Brazo Izquierdo",
-        "Mano Derecha",
-        "Antebrazo Derecho",
-        "Parte Superior del Brazo Derecho",
-        "Tronco",
-        "Cabeza",
+        "Left Hand",
+        "Left Forearm",
+        "Left Upperarm",
+        "Right Hand",
+        "Right Forearm",
+        "Right Upperarm",
+        "Trunk",
+        "Head",
     ]
         
     matrix = np.zeros(len(zone_map))
@@ -324,16 +326,16 @@ def get_heatmap(session_id: int):
     shoot_zones = session_data.shoots_final_zone.split(", ") 
 
     zone_map = {
-        "escuadra izquierda": (0, 0),
-        "centro izquierda": (0, 1),
-        "centro": (0, 2),
-        "centro derecha": (0, 3),
-        "escuadra derecha": (0, 4),
-        "bajo izquierda": (1, 0),
-        "centro abajo izquierda": (1, 1),
-        "centro abajo": (1, 2),
-        "centro abajo derecha": (1, 3),
-        "bajo derecha": (1, 4)
+        "EscuadraIzquierda": (0, 0),
+        "CentroIzquierda": (0, 1),
+        "Centro": (0, 2),
+        "CentroDerecha": (0, 3),
+        "EscuadraDerecha": (0, 4),
+        "BajoIzquierda": (1, 0),
+        "CentroIzquierdaBajo": (1, 1),
+        "CentroBajo": (1, 2),
+        "CentroDerechaBajo": (1, 3),
+        "BajoDerecha": (1, 4)
     }
     
     goal_matrix = np.zeros((2, 5))
@@ -342,7 +344,7 @@ def get_heatmap(session_id: int):
     for result, zone in zip(shoot_results, shoot_zones):
         if zone in zone_map:
             x, y = zone_map[zone]
-            if result == "goal":
+            if result == "Gol Recibido":
                 goal_matrix[x, y] += 1
             else:
                 save_matrix[x, y] += 1
@@ -355,7 +357,8 @@ def get_heatmap(session_id: int):
             
     pyplot.figure(figsize=(8, 2))
     fig, ax = pyplot.subplots()
-    ax.imshow(heatmap_data, cmap='coolwarm', interpolation='nearest') #cmap='hot',
+    colors = ['blue', 'lightcoral', 'red']
+    ax.imshow(heatmap_data/total_matrix, cmap=LinearSegmentedColormap.from_list('custom', colors, N=256), interpolation='nearest', vmin=0, vmax=1)
     
     for i in range(2):
         for j in range(5):
@@ -372,9 +375,9 @@ def get_heatmap(session_id: int):
     
     return Response(buffer.getvalue(), media_type="image/png")    
 
-@app.get("/api/scatterplot/{session_id}")
-def get_scatterplot(session_id: int):
-    """Función que crea el gráfico de dispersión."""
+@app.get("/api/scatterplot-positions/{session_id}")
+def get_scatterplot_positions(session_id: int):
+    """Función que crea el gráfico de dispersión de posiciones de cabeza y manos en una sesión."""
     session_tracking = get_session_tracking(session_id)
     
     handR_pos_x, handR_pos_y = [], []
@@ -414,9 +417,44 @@ def get_scatterplot(session_id: int):
         
     return Response(buffer.getvalue(), media_type="image/png")
     
+@app.get("/api/plot-times/{session_id}")
+def get_plot_times(session_id: int):
+    """Función que crea el gráfico de dispersión de la velocidad de reacción en cada lanzamiento."""
+    session_data = get_session_data(session_id)
+    
+    shoots_initial_time = session_data.shoots_initial_time.split(",")
+    shoots_final_time = session_data.shoots_final_time.split(",")
+
+    reaction_times = []
+    for initial_time, final_time in zip(shoots_initial_time, shoots_final_time):
+        logging.info(f"Initial time: {initial_time}, Final time: {final_time}")
+        reaction_times.append(float(final_time) - float(initial_time))
+    
+    reaction_times = np.array(reaction_times)
+    n_shots = np.arange(1, len(reaction_times) + 1) 
+
+    fig, ax = pyplot.subplots()
+
+    ax.plot(n_shots, reaction_times, label="Reaction Time per Shot", color='red', alpha=0.7)
+
+    ax.set_xlabel('Shots')
+    ax.set_ylabel('Time in seconds')
+    ax.set_title('Reaction Time per Shot')
+
+    ax.set_xticks(n_shots)
+    ax.set_ylim(bottom=0, top=max(reaction_times) + 0.5)
+    fig.tight_layout()
+
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', bbox_inches='tight')
+    pyplot.close(fig)
+    buffer.seek(0)
+        
+    return Response(buffer.getvalue(), media_type="image/png")
+
 @app.get("/api/saves-progress/{player_id}")
 def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
-    """Función que crea el gráfico de progreso de sesiones."""
+    """Función que crea el gráfico de progreso de paradas de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
    
     i = 0
@@ -454,6 +492,7 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
 
 @app.get("/api/heatmap-progress/{player_id}")
 def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
+    """Función que crea el heatmap de progreso de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
 
     shoot_results = []
@@ -466,17 +505,17 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
             shoot_zones.append(data.shoots_final_zone.split(", "))
 
         zone_map = {
-            "escuadra izquierda": (0, 0),
-            "centro izquierda": (0, 1),
-            "centro": (0, 2),
-            "centro derecha": (0, 3),
-            "escuadra derecha": (0, 4),
-            "bajo izquierda": (1, 0),
-            "centro abajo izquierda": (1, 1),
-            "centro abajo": (1, 2),
-            "centro abajo derecha": (1, 3),
-            "bajo derecha": (1, 4)
-        }
+            "EscuadraIzquierda": (0, 0),
+            "CentroIzquierda": (0, 1),
+            "Centro": (0, 2),
+            "CentroDerecha": (0, 3),
+            "EscuadraDerecha": (0, 4),
+            "BajoIzquierda": (1, 0),
+            "CentroIzquierdaBajo": (1, 1),
+            "CentroBajo": (1, 2),
+            "CentroDerechaBajo": (1, 3),
+            "BajoDerecha": (1, 4)
+       }
         
         goal_matrix = np.zeros((2, 5))
         save_matrix = np.zeros((2, 5))
@@ -485,7 +524,7 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
             for zone, result in zip(zones, results):
                 if zone in zone_map:
                     x, y = zone_map[zone]
-                    if result == "goal":
+                    if result == "Gol Recibido":
                         goal_matrix[x, y] += 1
                     else:
                         save_matrix[x, y] += 1
@@ -494,10 +533,12 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
 
         #Para las zonas sin lanzamientos
         mask = total_matrix == 0
+
         heatmap_data = np.ma.masked_array(goal_matrix, mask=mask)
                 
         fig, ax = pyplot.subplots(figsize=(8, 2))
-        heatmap = ax.imshow(heatmap_data, cmap='coolwarm', interpolation='nearest') #cmap='hot',
+        colors = ['blue', 'lightcoral', 'red']
+        ax.imshow(heatmap_data/total_matrix, cmap=LinearSegmentedColormap.from_list('custom', colors, N=256), interpolation='nearest', vmin=0, vmax=1)
 
         for i in range(2):
             for j in range(5):
@@ -506,10 +547,6 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
         
         ax.set_yticks([])
         ax.set_xticks([])
-
-        color_bar = pyplot.colorbar(heatmap, ax=ax)
-        color_bar.set_label("Goals Proportion")
-        color_bar.set_ticks(range(int(goal_matrix.max()) + 1)) 
         
         buffer = BytesIO()
         fig.savefig(buffer, format='png', bbox_inches='tight', pad_inches=0, transparent=True)
@@ -517,6 +554,41 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
         buffer.seek(0)
         
         return Response(buffer.getvalue(), media_type="image/png")    
+    else:
+        raise HTTPException(status_code=404, detail="No se encontraron sesiones")
+
+@app.get("/api/times-progress/{player_id}")
+def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
+    """Función que crea el gráfico de progreso de tiemop de duración de sesiones."""
+    sessions = get_sessions(player_id, mode, level, begin_date, end_date)
+   
+    times = []
+    session_dates = []
+    
+    if sessions:
+        for session in sessions:
+            data = get_session_data(session.id)
+                        
+            times.append(float(data.session_time))
+            session_dates.append(session.date)
+                  
+        fig, ax = pyplot.subplots()
+        
+        ax.plot(session_dates, times, label='Times', color='blue', marker='o', linestyle='-')
+        ax.set_xticks(ticks=session_dates, labels=session_dates, rotation=45, ha='right')
+        ax.set_ylim(0, max(times)+1)
+        ax.set_ylabel('Duration of each session')
+        ax.set_xlabel('Sessions Dates')
+        ax.legend()
+        
+        fig.tight_layout()
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png', bbox_inches='tight')
+        pyplot.close(fig)
+        buffer.seek(0)
+            
+        return Response(buffer.getvalue(), media_type="image/png")
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
     
