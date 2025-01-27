@@ -14,7 +14,7 @@ const Navbar = ({ user }: { user: User | null }): JSX.Element => {
   const [, setLocation] = useLocation();
 
   return (
-    <AppBar position="static" sx={{ backgroundColor: 'white', color: 'black' }}>
+    <AppBar position="static" sx={{ backgroundColor: '#004080', color: 'white' }}>
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Typography variant="h6">Handball GK Stats Web</Typography>
         <Box sx={{ display: 'flex', gap: 2 }}>
@@ -66,6 +66,7 @@ const Navbar = ({ user }: { user: User | null }): JSX.Element => {
         </Box>
         <Button
           variant="outlined"
+          color="inherit"
           startIcon={<AccountCircleIcon />}
           onClick={() => setLocation('/')}
         >

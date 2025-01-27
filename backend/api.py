@@ -248,7 +248,8 @@ def get_barchart_shoots(session_id: int):
     
     ax.set_ylabel('Nº of shoots')
     ax.set_title('Goals and saves per zone')
-    ax.set_xticks(x, labels, rotation=45, ha='right')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=45, ha='right')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.legend()
 
@@ -305,7 +306,8 @@ def get_barchart_saves(session_id: int):
     
     ax.set_ylabel('Nº of shoots')
     ax.set_title('Saves per bodypart')
-    ax.set_xticks(x, labels, rotation=45, ha='right')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=45, ha='right')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
     fig.tight_layout()
@@ -427,7 +429,6 @@ def get_plot_times(session_id: int):
 
     reaction_times = []
     for initial_time, final_time in zip(shoots_initial_time, shoots_final_time):
-        logging.info(f"Initial time: {initial_time}, Final time: {final_time}")
         reaction_times.append(float(final_time) - float(initial_time))
     
     reaction_times = np.array(reaction_times)
@@ -463,7 +464,6 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
     
     if sessions:
         for session in sessions:
-            logging.info(f"Session: {session.id}")
             data = get_session_data(session.id)
             saves.append(data.n_saves)
             session_dates.append(session.date)
@@ -476,7 +476,8 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
         ax.set_yticks(range(0, max(saves) + 1))  
         ax.set_ylabel('Nº of saves')
         ax.set_xlabel('Sessions Dates')
-        ax.set_xticks(ticks=session_dates, labels=session_dates, rotation=45, ha='right')
+        ax.set_xticks(session_dates)
+        ax.set_xticklabels(session_dates, rotation=45, ha='right')
         ax.legend()
         
         fig.tight_layout()
@@ -559,7 +560,7 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
 
 @app.get("/api/times-progress/{player_id}")
 def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
-    """Función que crea el gráfico de progreso de tiemop de duración de sesiones."""
+    """Función que crea el gráfico de progreso de tiempo de duración de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
    
     times = []
@@ -575,7 +576,8 @@ def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str
         fig, ax = pyplot.subplots()
         
         ax.plot(session_dates, times, label='Times', color='blue', marker='o', linestyle='-')
-        ax.set_xticks(ticks=session_dates, labels=session_dates, rotation=45, ha='right')
+        ax.set_xticks(session_dates)
+        ax.set_xticklabels(session_dates, rotation=45, ha='right')
         ax.set_ylim(0, max(times)+1)
         ax.set_ylabel('Duration of each session')
         ax.set_xlabel('Sessions Dates')
@@ -611,7 +613,8 @@ def get_barchart_comparison(session_id1: int, session_id2: int):
     
     ax.set_ylabel('Nº of shoots')
     ax.set_title('Total nº of goals & saves')
-    ax.set_xticks(x, labels, ha='right')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, ha='right')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.legend()
     
