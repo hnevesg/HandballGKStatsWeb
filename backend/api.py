@@ -54,7 +54,7 @@ class Session(Base):
 
 class SessionData(Base):
     __tablename__ = "sessions_data"
-    session_id = Column(Integer, primary_key=True, index=True)
+    session_date = Column(String, primary_key=True, index=True)
     session_time = Column(String)
     n_goals = Column(Integer)
     n_saves = Column(Integer)
@@ -66,33 +66,34 @@ class SessionData(Base):
     shoots_final_zone = Column(String)
     shoots_result = Column(String)
     saves_bodypart = Column(String)
+    target_goals = Column(Integer)
     
 class SessionTracking(Base):
     __tablename__ = "sessions_tracking"
     id = Column(Integer, primary_key=True, index=True)
-    session_id = Column(Integer)
-    head_pos_x = Column(Integer)
-    head_pos_y = Column(Integer)
-    head_pos_z = Column(Integer)
-    handR_pos_x = Column(Integer)
-    handR_pos_y = Column(Integer)
-    handR_pos_z = Column(Integer)
-    handR_rot_x = Column(Integer)
-    handR_rot_y = Column(Integer)
-    handR_rot_z = Column(Integer)
-    handR_speed_x = Column(Integer)
-    handR_speed_y = Column(Integer)
-    handR_speed_z = Column(Integer)
-    handL_pos_x = Column(Integer)
-    handL_pos_y = Column(Integer)
-    handL_pos_z = Column(Integer)
-    handL_rot_x = Column(Integer)
-    handL_rot_y = Column(Integer)
-    handL_rot_z = Column(Integer)
-    handL_speed_x = Column(Integer)
-    handL_speed_y = Column(Integer)
-    handL_speed_z = Column(Integer)
-    
+    session_date = Column(String)
+    HeadPosition_x = Column(Integer)
+    HeadPosition_y = Column(Integer)
+    HeadPosition_z = Column(Integer)
+    RHandPosition_x = Column(Integer)
+    RHandPosition_y = Column(Integer)
+    RHandPosition_z = Column(Integer)
+    RHandRotation_x = Column(Integer)
+    RHandRotation_y = Column(Integer)
+    RHandRotation_z = Column(Integer)
+    RHandVelocity_x = Column(Integer)
+    RHandVelocity_y = Column(Integer)
+    RHandVelocity_z = Column(Integer)
+    LHandPosition_x = Column(Integer)
+    LHandPosition_y = Column(Integer)
+    LHandPosition_z = Column(Integer)
+    LHandRotation_x = Column(Integer)
+    LHandRotation_y = Column(Integer)
+    LHandRotation_z = Column(Integer)
+    LHandVelocity_x = Column(Integer)
+    LHandVelocity_y = Column(Integer)
+    LHandVelocity_z = Column(Integer)
+        
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -205,29 +206,29 @@ def get_team_sessions(team_id: int):
     session.close()
     return sessions
 
-@app.get("/api/sessionData/{session_id}")
-def get_session_data(session_id: int):
+@app.get("/api/sessionData/{session_date}")
+def get_session_data(session_date: str):
     """Función para obtener los datos de una sesión."""
     session = SessionLocal()
-    data = session.query(SessionData).filter(SessionData.session_id == session_id).first()
+    data = session.query(SessionData).filter(SessionData.session_date == session_date).first()
     session.close()
     return data
 
-@app.get("/api/sessionTracking/{session_id}")
-def get_session_tracking(session_id: int):
+@app.get("/api/sessionTracking/{session_date}")
+def get_session_tracking(session_date: str):
     """Función para obtener el tracking de una sesión."""
     session = SessionLocal()
-    sessions = session.query(SessionTracking).filter(SessionTracking.session_id == session_id).all()
+    sessions = session.query(SessionTracking).filter(SessionTracking.session_date == session_date).all()
     session.close()
     return sessions 
 
 # ------------------- Metrics Charts -------------------
-@app.get("/api/barchart-shoots/{session_id}")
-def get_barchart_shoots(session_id: int):
+@app.get("/api/barchart-shoots/{session_date}")
+def get_barchart_shoots(session_date: str):
     """Función que crea el gráfico de barras de lanzamientos de una sesión."""
-    session_data = get_session_data(session_id)
+    session_data = get_session_data(session_date)
     
-    shoot_results = session_data.shoots_result.split(", ")
+    shoot_results = session_data.shoots_result.split(",")
     
     goals = 0
     saves = 0
@@ -262,12 +263,12 @@ def get_barchart_shoots(session_id: int):
         
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/api/barchart-saves/{session_id}")
-def get_barchart_saves(session_id: int):
+@app.get("/api/barchart-saves/{session_date}")
+def get_barchart_saves(session_date: str):
     """Función que crea el gráfico de barras de paradas de una sesión."""
-    session_data = get_session_data(session_id)
+    session_data = get_session_data(session_date)
     
-    save_bodypart = session_data.saves_bodypart.split(", ")
+    save_bodypart = session_data.saves_bodypart.split(",")
                 
     zone_map = {
         "LeftHand": 0,
@@ -319,13 +320,13 @@ def get_barchart_saves(session_id: int):
         
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/api/heatmap/{session_id}")
-def get_heatmap(session_id: int):
+@app.get("/api/heatmap/{session_date}")
+def get_heatmap(session_date: str):
     """Funcion que crea el heatmap de una sesion"""
-    session_data = get_session_data(session_id)
+    session_data = get_session_data(session_date)
 
-    shoot_results = session_data.shoots_result.split(", ") 
-    shoot_zones = session_data.shoots_final_zone.split(", ") 
+    shoot_results = session_data.shoots_result.split(",") 
+    shoot_zones = session_data.shoots_final_zone.split(",") 
 
     zone_map = {
         "EscuadraIzquierda": (0, 0),
@@ -377,22 +378,22 @@ def get_heatmap(session_id: int):
     
     return Response(buffer.getvalue(), media_type="image/png")    
 
-@app.get("/api/scatterplot-positions/{session_id}")
-def get_scatterplot_positions(session_id: int):
+@app.get("/api/scatterplot-positions/{session_date}")
+def get_scatterplot_positions(session_date: str):
     """Función que crea el gráfico de dispersión de posiciones de cabeza y manos en una sesión."""
-    session_tracking = get_session_tracking(session_id)
+    session_tracking = get_session_tracking(session_date)
     
     handR_pos_x, handR_pos_y = [], []
     handL_pos_x, handL_pos_y = [], []
     head_pos_x, head_pos_y = [], []
 
     for frame in session_tracking:
-        handR_pos_x.append(frame.handR_pos_x)
-        handR_pos_y.append(frame.handR_pos_y)
-        handL_pos_x.append(frame.handL_pos_x)
-        handL_pos_y.append(frame.handL_pos_y)
-        head_pos_x.append(frame.head_pos_x)
-        head_pos_y.append(frame.head_pos_y)
+        handR_pos_x.append(frame.RHandPosition_x)
+        handR_pos_y.append(frame.RHandPosition_y)
+        handL_pos_x.append(frame.LHandPosition_x)
+        handL_pos_y.append(frame.LHandPosition_y)
+        head_pos_x.append(frame.HeadPosition_x)
+        head_pos_y.append(frame.HeadPosition_y)
 
     handR_pos_x = np.array(handR_pos_x)
     handR_pos_y = np.array(handR_pos_y)
@@ -419,10 +420,10 @@ def get_scatterplot_positions(session_id: int):
         
     return Response(buffer.getvalue(), media_type="image/png")
     
-@app.get("/api/plot-times/{session_id}")
-def get_plot_times(session_id: int):
+@app.get("/api/plot-times/{session_date}")
+def get_plot_times(session_date: str):
     """Función que crea el gráfico de dispersión de la velocidad de reacción en cada lanzamiento."""
-    session_data = get_session_data(session_id)
+    session_data = get_session_data(session_date)
     
     shoots_initial_time = session_data.shoots_initial_time.split(",")
     shoots_final_time = session_data.shoots_final_time.split(",")
@@ -464,7 +465,7 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
     
     if sessions:
         for session in sessions:
-            data = get_session_data(session.id)
+            data = get_session_data(session.date)
             saves.append(data.n_saves)
             session_dates.append(session.date)
             i += 1
@@ -501,9 +502,9 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
     
     if sessions:
         for session in sessions:
-            data = get_session_data(session.id)
-            shoot_results.append(data.shoots_result.split(", "))
-            shoot_zones.append(data.shoots_final_zone.split(", "))
+            data = get_session_data(session.date)
+            shoot_results.append(data.shoots_result.split(","))
+            shoot_zones.append(data.shoots_final_zone.split(","))
 
         zone_map = {
             "EscuadraIzquierda": (0, 0),
@@ -568,7 +569,7 @@ def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str
     
     if sessions:
         for session in sessions:
-            data = get_session_data(session.id)
+            data = get_session_data(session.date)
                         
             times.append(float(data.session_time))
             session_dates.append(session.date)
@@ -594,11 +595,11 @@ def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
     
-@app.get("/api/barchart-comparison/{session_id1}/{session_id2}")
-def get_barchart_comparison(session_id1: int, session_id2: int):
+@app.get("/api/barchart-comparison/{session_date1}/{session_date2}")
+def get_barchart_comparison(session_date1: str, session_date2: str):
     """Función que crea el gráfico de barras comparativo de lanzamientos de dos sesiones."""
-    sessionP1 = get_session_data(session_id1)
-    sessionP2 = get_session_data(session_id2)
+    sessionP1 = get_session_data(session_date1)
+    sessionP2 = get_session_data(session_date2)
     
     labels = ['Player 1', 'Player 2']
     x = np.arange(len(labels))

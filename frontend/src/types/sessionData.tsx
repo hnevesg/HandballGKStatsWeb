@@ -1,5 +1,5 @@
 export interface SessionData{
-    session_id: number,
+    session_date: number,
     session_time: string,
     n_goals: number,
     n_saves: number,
@@ -11,4 +11,5 @@ export interface SessionData{
     shoots_final_zone: string,
     shoots_result: string,
     save_hand: string,
+    target_goals: number,
 }

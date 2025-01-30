@@ -60,7 +60,7 @@ const ComparisonDetails = (): JSX.Element => {
   const getSessionsData = async () => {
     if (!session1 || !session2) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/sessionData/${session1.id}`);
+      const response = await fetch(`http://localhost:8000/api/sessionData/${session1.date}`);
       if (response.ok) {
         console.log("Session Tracking P1 ANSWER")
         const dataP1 = await response.json();
@@ -69,7 +69,7 @@ const ComparisonDetails = (): JSX.Element => {
         console.error('Error fetching P1 session tracking');
       }
 
-      let responseP2 = await fetch(`http://localhost:8000/api/sessionData/${session2.id}`);
+      let responseP2 = await fetch(`http://localhost:8000/api/sessionData/${session2.date}`);
       if (responseP2.ok) {
         console.log("Session Tracking P2 ANSWER")
         const dataP2 = await responseP2.json();
@@ -85,7 +85,7 @@ const ComparisonDetails = (): JSX.Element => {
   const getSessionsTracking = async () => {
     if (!session1 || !session2) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/sessionTracking/${session1.id}`);
+      const response = await fetch(`http://localhost:8000/api/sessionTracking/${session1.date}`);
       if (response.ok) {
         console.log("Session Tracking P1 ANSWER")
         const dataP1 = await response.json();
@@ -94,7 +94,7 @@ const ComparisonDetails = (): JSX.Element => {
         console.error('Error fetching P1 session tracking');
       }
 
-      let responseP2 = await fetch(`http://localhost:8000/api/sessionTracking/${session2.id}`);
+      let responseP2 = await fetch(`http://localhost:8000/api/sessionTracking/${session2.date}`);
       if (responseP2.ok) {
         console.log("Session Tracking P2 ANSWER")
         const dataP2 = await responseP2.json();
@@ -108,19 +108,19 @@ const ComparisonDetails = (): JSX.Element => {
   }
 
   const getPlots = () => {
-    let barchartShootsUrl = `http://localhost:8000/api/barchart-comparison/${session1?.id}/${session2?.id}`;
+    let barchartShootsUrl = `http://localhost:8000/api/barchart-comparison/${session1?.date}/${session2?.date}`;
     setBarchartURL(barchartShootsUrl);
 
-    let heatmapP1Url = `http://localhost:8000/api/heatmap/${session1?.id}`;
+    let heatmapP1Url = `http://localhost:8000/api/heatmap/${session1?.date}`;
     setHeatmapP1URL(heatmapP1Url);
 
-    let heatmapP2Url = `http://localhost:8000/api/heatmap/${session2?.id}`;
+    let heatmapP2Url = `http://localhost:8000/api/heatmap/${session2?.date}`;
     setHeatmapP2URL(heatmapP2Url);
 
-    let plotTimesP1Url = `http://localhost:8000/api/plot-times/${session1?.id}`;
+    let plotTimesP1Url = `http://localhost:8000/api/plot-times/${session1?.date}`;
     setPlotTimesP1URL(plotTimesP1Url);
 
-    let plotTimesP2Url = `http://localhost:8000/api/plot-times/${session2?.id}`;
+    let plotTimesP2Url = `http://localhost:8000/api/plot-times/${session2?.date}`;
     setPlotTimesP2URL(plotTimesP2Url);
   }
 
@@ -136,8 +136,8 @@ const ComparisonDetails = (): JSX.Element => {
     if (sessionTrackingP1.length > 0 && session1) {
       let speedL = 0, speedR = 0;
       sessionTrackingP1.forEach(data => {
-        speedL += Math.sqrt(data.handL_speed_x + data.handL_speed_y + data.handL_speed_z);
-        speedR += Math.sqrt(data.handR_speed_x + data.handR_speed_y + data.handR_speed_z);
+        speedL += Math.sqrt(data.LHandVelocity_x + data.LHandVelocity_y + data.LHandVelocity_z);
+        speedR += Math.sqrt(data.RHandVelocity_x + data.RHandVelocity_y + data.RHandVelocity_z);
       });
       setLhandSpeedP1(speedL);
       setRhandSpeedP1(speedR);
@@ -145,8 +145,8 @@ const ComparisonDetails = (): JSX.Element => {
     if (sessionTrackingP2.length > 0 && session2) {
       let speedL = 0, speedR = 0;
       sessionTrackingP2.forEach(data => {
-        speedL += Math.sqrt(data.handL_speed_x + data.handL_speed_y + data.handL_speed_z);
-        speedR += Math.sqrt(data.handR_speed_x + data.handR_speed_y + data.handR_speed_z);
+        speedL += Math.sqrt(data.LHandVelocity_x + data.LHandVelocity_y + data.LHandVelocity_z);
+        speedR += Math.sqrt(data.RHandVelocity_x + data.RHandVelocity_y + data.RHandVelocity_z);
       });
       setLhandSpeedP2(speedL);
       setRhandSpeedP2(speedR);

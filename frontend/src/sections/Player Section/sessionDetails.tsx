@@ -28,7 +28,7 @@ const SessionDetails = (): JSX.Element => {
     const getSessionData = async () => {
         if (!session) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/sessionData/${session.id}`);
+            const response = await fetch(`http://localhost:8000/api/sessionData/${session.date}`);
             if (response.ok) {
                 console.log("Session Data ANSWER")
                 const data = await response.json();
@@ -44,7 +44,7 @@ const SessionDetails = (): JSX.Element => {
     const getSessionTracking = async () => {
         if (!session) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/sessionTracking/${session.id}`);
+            const response = await fetch(`http://localhost:8000/api/sessionTracking/${session.date}`);
             if (response.ok) {
                 console.log("Session Tracking ANSWER")
                 const data = await response.json();
@@ -81,19 +81,19 @@ const SessionDetails = (): JSX.Element => {
 
     const getPlots = () => {
         if (!session) return;
-        let barchartShootsUrl = `http://localhost:8000/api/barchart-shoots/${session?.id}`;
+        let barchartShootsUrl = `http://localhost:8000/api/barchart-shoots/${session?.date}`;
         setBarchartShootsURL(barchartShootsUrl);
 
-        let barchartSavesUrl = `http://localhost:8000/api/barchart-saves/${session?.id}`;
+        let barchartSavesUrl = `http://localhost:8000/api/barchart-saves/${session?.date}`;
         setBarchartSavesURL(barchartSavesUrl);
 
-        let heatmapUrl = `http://localhost:8000/api/heatmap/${session?.id}`;
+        let heatmapUrl = `http://localhost:8000/api/heatmap/${session?.date}`;
         setHeatmapURL(heatmapUrl);
 
-        let plotTimesUrl = `http://localhost:8000/api/plot-times/${session?.id}`;
+        let plotTimesUrl = `http://localhost:8000/api/plot-times/${session?.date}`;
         setPlotTimesURL(plotTimesUrl);
 
-        let scatterplotPositionsUrl = `http://localhost:8000/api/scatterplot-positions/${session?.id}`;
+        let scatterplotPositionsUrl = `http://localhost:8000/api/scatterplot-positions/${session?.date}`;
         setScatterplotPositionsURL(scatterplotPositionsUrl);
     }
 
@@ -111,8 +111,8 @@ const SessionDetails = (): JSX.Element => {
         if (sessionTracking.length > 0 && session) {
             let speedL = 0, speedR = 0;
             sessionTracking.forEach(data => {
-                speedL += Math.sqrt(data.handL_speed_x + data.handL_speed_y + data.handL_speed_z);
-                speedR += Math.sqrt(data.handR_speed_x + data.handR_speed_y + data.handR_speed_z);
+                speedL += Math.sqrt(data.LHandVelocity_x + data.LHandVelocity_y + data.LHandVelocity_z);
+                speedR += Math.sqrt(data.RHandVelocity_x + data.RHandVelocity_y + data.RHandVelocity_z);
             });
             setLhandSpeed(speedL);
             setRhandSpeed(speedR);
@@ -185,7 +185,7 @@ const SessionDetails = (): JSX.Element => {
                                         alignItems: 'center'
                                     }}>
                                         {barchartShootsURL ? (
-                                            <img id={`barChartShoots-${session?.id}`} src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            <img src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                         ) : (
                                             <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
                                         )}
@@ -202,7 +202,7 @@ const SessionDetails = (): JSX.Element => {
                                         alignItems: 'center'
                                     }}>
                                         {barchartSavesURL ? (
-                                            <img id={`barChartSaves-${session?.id}`} src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            <img src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                         ) : (
                                             <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
                                         )}
@@ -224,7 +224,7 @@ const SessionDetails = (): JSX.Element => {
                                     }}>
                                         <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
                                         {heatmapURL ? (
-                                            <img id={`heatmap-${session?.id}`} src={heatmapURL} alt="Heatmap" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
+                                            <img src={heatmapURL} alt="Heatmap" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
                                         ) : (
                                             <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
                                         )}
@@ -251,7 +251,7 @@ const SessionDetails = (): JSX.Element => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                     {plotTimesURL ? (
-                                        <img id={`scatterplot-times-${session?.id}`} src={plotTimesURL} alt="Scatter plot of reaction time" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        <img src={plotTimesURL} alt="Scatter plot of reaction time" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                     ) : (
                                         <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
                                     )}
@@ -261,7 +261,7 @@ const SessionDetails = (): JSX.Element => {
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                     {scatterplotPositionsURL ? (
-                                        <img id={`scatterplot-positions-${session?.id}`} src={scatterplotPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                        <img src={scatterplotPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                     ) : (
                                         <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
                                     )}
