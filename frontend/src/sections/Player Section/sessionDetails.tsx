@@ -18,8 +18,8 @@ const SessionDetails = (): JSX.Element => {
     const [sessionTracking, setSessionTracking] = useState<SessionTracking[]>([]);
     const [barchartSavesURL, setBarchartSavesURL] = useState<any>(null);
     const [heatmapURL, setHeatmapURL] = useState<any>(null);
-    const [plotTimesURL, setPlotTimesURL] = useState<any>(null);
-    const [scatterplotPositionsURL, setScatterplotPositionsURL] = useState<any>(null);
+    const [scatterplot2DPositionsURL, set2DScatterplotPositionsURL] = useState<any>(null);
+    const [scatterplot3DPositionsURL, set3DScatterplotPositionsURL] = useState<any>(null);
     const [LhandSpeed, setLhandSpeed] = useState<number>()
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
@@ -90,11 +90,11 @@ const SessionDetails = (): JSX.Element => {
         let heatmapUrl = `http://localhost:8000/api/heatmap/${session?.date}`;
         setHeatmapURL(heatmapUrl);
 
-        let plotTimesUrl = `http://localhost:8000/api/plot-times/${session?.date}`;
-        setPlotTimesURL(plotTimesUrl);
+        let scatterplot2DPositionsUrl = `http://localhost:8000/api/2D-scatterplot-positions/${session?.date}`;
+        set2DScatterplotPositionsURL(scatterplot2DPositionsUrl);
 
-        let scatterplotPositionsUrl = `http://localhost:8000/api/scatterplot-positions/${session?.date}`;
-        setScatterplotPositionsURL(scatterplotPositionsUrl);
+        let scatterplot3DPositionsUrl = `http://localhost:8000/api/3D-scatterplot-positions/${session?.date}`;
+        set3DScatterplotPositionsURL(scatterplot3DPositionsUrl);
     }
 
     useEffect(() => {
@@ -103,19 +103,27 @@ const SessionDetails = (): JSX.Element => {
 
             const saves = sessionData.n_saves || 0;
             const goals = sessionData.n_goals || 0;
-            setSavesPercentage((saves / (saves + goals)) * 100 || 0);
+            setSavesPercentage(parseFloat(((saves / (saves + goals)) * 100 || 0).toFixed(2)));
         }
     }, [sessionData, session]);
 
     useEffect(() => {
-        if (sessionTracking.length > 0 && session) {
+        if (sessionTracking.length > 0 && session && sessionData) {
             let speedL = 0, speedR = 0;
             sessionTracking.forEach(data => {
-                speedL += Math.sqrt(data.LHandVelocity_x + data.LHandVelocity_y + data.LHandVelocity_z);
-                speedR += Math.sqrt(data.RHandVelocity_x + data.RHandVelocity_y + data.RHandVelocity_z);
+                speedL += Math.sqrt(
+                    Math.pow(data.LHandVelocity_x, 2) +
+                    Math.pow(data.LHandVelocity_y, 2) +
+                    Math.pow(data.LHandVelocity_z, 2)
+                    );
+                speedR += Math.sqrt(
+                    Math.pow(data.RHandVelocity_x, 2) +
+                    Math.pow(data.RHandVelocity_y, 2) +
+                    Math.pow(data.RHandVelocity_z, 2)
+                );
             });
-            setLhandSpeed(speedL);
-            setRhandSpeed(speedR);
+            setLhandSpeed(speedL / Number(sessionData.session_time));
+            setRhandSpeed(speedR / Number(sessionData.session_time));
         }
     }, [sessionTracking, session]);
 
@@ -123,6 +131,98 @@ const SessionDetails = (): JSX.Element => {
         navigate("/player-sessions", {
             state: { player, user: loggedUser }
         });
+    }
+
+    const getUniqueInitialZones = () => {
+        if (!sessionData) return '';
+        const uniqueZones = new Set(sessionData.shoots_initial_zone.split(','));
+        return Array.from(uniqueZones).join(',');
+    };
+
+    if (session?.game_mode === "LightsReaction" || session?.game_mode === "LightsReaction2") {
+        return (
+            <Box>
+                <Navbar user={loggedUser} />
+                <Container maxWidth="lg" sx={{ mt: 4 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+                        <IconButton
+                            onClick={goBack}
+                            sx={{ mr: 2 }}
+                        >
+                            <ArrowBackIcon />
+                        </IconButton>
+                        <Typography variant="h4" align='center'>Statistics</Typography>
+                    </Box>
+
+                    <Grid container spacing={4}>
+                        {/* Left Column - Player Info and Session Details */}
+                        <Grid item xs={12} md={3}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                    <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
+                                    <Typography variant="h6">{player?.name}</Typography>
+                                </Box>
+
+                                <Paper sx={{ p: 2 }}>
+                                    {session ? (
+                                        <>
+                                            <Typography variant="subtitle2" gutterBottom>Session Date: {formatDate(session.date)}</Typography>
+                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                <Typography variant="subtitle2" sx={{ wordBreak: 'break-word' }}>• From: {(getUniqueInitialZones() as string).replace(/,/g, ', ')}</Typography>
+                                            </Box>                                            <Box sx={{ mt: 2 }}>
+                                                <Typography>Configuration</Typography>
+                                                <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
+                                                <Typography variant="subtitle2">• Difficulty: {session?.prestige_level}</Typography>
+                                                {/*              <Typography variant="subtitle2">• Model size: {sessionData.configuration.modelSize}</Typography> */}
+                                            </Box>
+                                        </>
+                                    ) : (
+                                        <Typography variant="body2" color="textSecondary">Loading data...</Typography>
+                                    )}
+                                </Paper>
+                            </Box>
+                        </Grid>
+
+                        {/* Metric 3 - Summary Table */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                <Typography variant="h6" gutterBottom>Summary of Data</Typography>
+                                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+                                    <Typography fontWeight="bold"> • Session Duration</Typography>
+                                    <Typography>{sessionData?.session_time}s</Typography>
+                                    <Typography fontWeight="bold"> • Nº of lights</Typography>
+                                    <Typography fontWeight="bold">{sessionData?.n_lights}</Typography>
+                                    <Typography fontWeight="bold">• Saves percentage</Typography>
+                                    <Typography>{savesPercentage}%</Typography>
+                                    <Typography fontWeight="bold">• Average Hand Speed</Typography>
+                                    <Typography>Left: {LhandSpeed?.toFixed(3)} s  <br /> Right: {RhandSpeed?.toFixed(3)}s</Typography>
+                                </Box>
+                            </Paper>
+                        </Box>
+
+                        {/* Metric 4 - Scatter Plot */}
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                {scatterplot2DPositionsURL ? (
+                                    <img src={scatterplot2DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                ) : (
+                                    <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
+                                )}
+                            </Paper>
+                        </Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                {scatterplot3DPositionsURL ? (
+                                    <img src={scatterplot3DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                ) : (
+                                    <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
+                                )}
+                            </Paper>
+                        </Box>
+                    </Grid>
+                </Container>
+            </Box>
+        );
     }
 
     return (
@@ -152,7 +252,9 @@ const SessionDetails = (): JSX.Element => {
                                 {session ? (
                                     <>
                                         <Typography variant="subtitle2" gutterBottom>Session Date: {formatDate(session.date)}</Typography>
-                                        <Typography variant="subtitle2">• From: {sessionData?.shoots_initial_zone}</Typography>
+                                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                            <Typography variant="subtitle2" sx={{ wordBreak: 'break-word' }}>• From: {(getUniqueInitialZones() as string).replace(/,/g, ', ')}</Typography>
+                                        </Box>
                                         <Box sx={{ mt: 2 }}>
                                             <Typography>Configuration</Typography>
                                             <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
@@ -247,21 +349,20 @@ const SessionDetails = (): JSX.Element => {
                                 </Paper>
                             </Box>
 
-                            {/* Metric 4 - Plot */}
+                            {/* Metric 4 - Scatter Plot */}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                    {plotTimesURL ? (
-                                        <img src={plotTimesURL} alt="Scatter plot of reaction time" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    {scatterplot2DPositionsURL ? (
+                                        <img src={scatterplot2DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                     ) : (
-                                        <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                        <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
                                     )}
                                 </Paper>
                             </Box>
-                            {/* Metric 5 - Scatter Plot */}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                 <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                    {scatterplotPositionsURL ? (
-                                        <img src={scatterplotPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                    {scatterplot3DPositionsURL ? (
+                                        <img src={scatterplot3DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                     ) : (
                                         <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
                                     )}

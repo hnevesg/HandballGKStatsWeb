@@ -55,7 +55,7 @@ const LoginPlayers = (): JSX.Element => {
     }
   }
 
-    useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Enter') {
         handleLogin();

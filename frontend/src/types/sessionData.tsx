@@ -3,6 +3,7 @@ export interface SessionData{
     session_time: string,
     n_goals: number,
     n_saves: number,
+    n_lights: number,
     shoots_initial_time: string,
     shoots_final_time: string,
     shoots_initial_point: string,
@@ -10,6 +11,6 @@ export interface SessionData{
     shoots_final_point: string,
     shoots_final_zone: string,
     shoots_result: string,
-    save_hand: string,
+    saves_bodypart: string,
     target_goals: number,
 }

@@ -58,6 +58,7 @@ class SessionData(Base):
     session_time = Column(String)
     n_goals = Column(Integer)
     n_saves = Column(Integer)
+    n_lights = Column(Integer)
     shoots_initial_time = Column(String)
     shoots_final_time = Column(String)
     shoots_initial_point = Column(String)
@@ -72,6 +73,8 @@ class SessionTracking(Base):
     __tablename__ = "sessions_tracking"
     id = Column(Integer, primary_key=True, index=True)
     session_date = Column(String)
+    Frame = Column(Integer)
+    Time = Column(Integer)
     HeadPosition_x = Column(Integer)
     HeadPosition_y = Column(Integer)
     HeadPosition_z = Column(Integer)
@@ -234,7 +237,7 @@ def get_barchart_shoots(session_date: str):
     saves = 0
     
     for result in shoot_results:
-        if result == "Gol Recibido":
+        if result == "Gol recibido":
             goals += 1
         else:
             saves += 1
@@ -347,7 +350,7 @@ def get_heatmap(session_date: str):
     for result, zone in zip(shoot_results, shoot_zones):
         if zone in zone_map:
             x, y = zone_map[zone]
-            if result == "Gol Recibido":
+            if result == "Gol recibido":
                 goal_matrix[x, y] += 1
             else:
                 save_matrix[x, y] += 1
@@ -378,9 +381,9 @@ def get_heatmap(session_date: str):
     
     return Response(buffer.getvalue(), media_type="image/png")    
 
-@app.get("/api/scatterplot-positions/{session_date}")
+@app.get("/api/2D-scatterplot-positions/{session_date}")
 def get_scatterplot_positions(session_date: str):
-    """Función que crea el gráfico de dispersión de posiciones de cabeza y manos en una sesión."""
+    """Función que crea el gráfico 2D de dispersión de posiciones de cabeza y manos en una sesión."""
     session_tracking = get_session_tracking(session_date)
     
     handR_pos_x, handR_pos_y = [], []
@@ -410,7 +413,57 @@ def get_scatterplot_positions(session_date: str):
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
-    ax.set_title('Head and Hands Position')
+    ax.set_title('2D Head and Hands Position')
+    ax.legend()    
+
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png', bbox_inches='tight')
+    pyplot.close(fig)
+    buffer.seek(0)
+        
+    return Response(buffer.getvalue(), media_type="image/png")
+
+@app.get("/api/3D-scatterplot-positions/{session_date}")
+def get_3D_scatterplot_positions(session_date: str):
+    """Función que crea el gráfico 3D de dispersión de posiciones de cabeza y manos en una sesión."""
+    session_tracking = get_session_tracking(session_date)
+    
+    handR_pos_x, handR_pos_y, handR_pos_z = [], [], []
+    handL_pos_x, handL_pos_y, handL_pos_z = [], [], []
+    head_pos_x, head_pos_y, head_pos_z = [], [], []
+
+    for frame in session_tracking:
+        handR_pos_x.append(frame.RHandPosition_x)
+        handR_pos_y.append(frame.RHandPosition_y)
+        handR_pos_z.append(frame.RHandPosition_z)
+        handL_pos_x.append(frame.LHandPosition_x)
+        handL_pos_y.append(frame.LHandPosition_y)
+        handL_pos_z.append(frame.LHandPosition_z)
+        head_pos_x.append(frame.HeadPosition_x)
+        head_pos_y.append(frame.HeadPosition_y)
+        head_pos_z.append(frame.HeadPosition_z)
+
+    handR_pos_x = np.array(handR_pos_x)
+    handR_pos_y = np.array(handR_pos_y)
+    handR_pos_z = np.array(handR_pos_z)
+    handL_pos_x = np.array(handL_pos_x)
+    handL_pos_y = np.array(handL_pos_y)
+    handL_pos_z = np.array(handL_pos_z)
+    head_pos_x = np.array(head_pos_x)
+    head_pos_y = np.array(head_pos_y)
+    head_pos_z = np.array(head_pos_z)
+   
+    fig = pyplot.figure()
+    ax = fig.add_subplot(111, projection='3d') 
+
+    ax.scatter(head_pos_x, head_pos_y, head_pos_z, label="Head", color='red', alpha=0.7)
+    ax.scatter(handR_pos_x, handR_pos_y, handR_pos_z, label="Right Hand", color='blue', alpha=0.7)
+    ax.scatter(handL_pos_x, handL_pos_y, handL_pos_z, label="Left Hand", color='green', alpha=0.7)
+
+    ax.set_xlabel('Width')
+    ax.set_ylabel('Height')
+    ax.set_zlabel('Depth')
+    ax.set_title('3D Head and Hands Position')
     ax.legend()    
 
     buffer = BytesIO()
@@ -474,7 +527,6 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
         
         ax.plot(session_dates, saves, label='Saves', color='blue', marker='o', linestyle='-')
         ax.set_ylim(0, max(saves)+1) 
-        ax.set_yticks(range(0, max(saves) + 1))  
         ax.set_ylabel('Nº of saves')
         ax.set_xlabel('Sessions Dates')
         ax.set_xticks(session_dates)
@@ -526,7 +578,7 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
             for zone, result in zip(zones, results):
                 if zone in zone_map:
                     x, y = zone_map[zone]
-                    if result == "Gol Recibido":
+                    if result == "Gol recibido":
                         goal_matrix[x, y] += 1
                     else:
                         save_matrix[x, y] += 1
@@ -594,7 +646,45 @@ def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str
         return Response(buffer.getvalue(), media_type="image/png")
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
+  
+@app.get("/api/lights-progress/{player_id}")
+def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
+    """Función que crea el gráfico de progreso de luces tocadas de varias sesiones."""
+    sessions = get_sessions(player_id, mode, level, begin_date, end_date)
+   
+    i = 0
+    lights = []
+    session_dates = []
     
+    if sessions:
+        for session in sessions:
+            data = get_session_data(session.date)
+            lights.append(data.n_lights)
+            session_dates.append(session.date)
+            i += 1
+        
+        fig, ax = pyplot.subplots()
+        
+        ax.plot(session_dates, lights, label='Saves', color='blue', marker='o', linestyle='-')
+        ax.set_ylim(0, max(lights)+1) 
+        ax.set_yticks(range(0, max(lights) + 1))  
+        ax.set_ylabel('Nº of touched lights')
+        ax.set_xlabel('Sessions Dates')
+        ax.set_xticks(session_dates)
+        ax.set_xticklabels(session_dates, rotation=45, ha='right')
+        ax.legend()
+        
+        fig.tight_layout()
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png', bbox_inches='tight')
+        pyplot.close(fig)
+        buffer.seek(0)
+            
+        return Response(buffer.getvalue(), media_type="image/png")
+    else:
+        raise HTTPException(status_code=404, detail="No se encontraron sesiones")
+  
 @app.get("/api/barchart-comparison/{session_date1}/{session_date2}")
 def get_barchart_comparison(session_date1: str, session_date2: str):
     """Función que crea el gráfico de barras comparativo de lanzamientos de dos sesiones."""

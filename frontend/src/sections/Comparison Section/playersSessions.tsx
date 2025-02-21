@@ -1,7 +1,4 @@
-import {
-  Box, Container, Typography, Select, MenuItem, Avatar, IconButton, Table, TableBody,
-  TableCell, TableContainer, TableHead, TableRow, Paper, Button
-} from '@mui/material';
+import { Box, Container, Typography, Select, MenuItem, IconButton, Button} from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
@@ -134,8 +131,6 @@ const PlayersSessions = (): JSX.Element => {
             >
               <MenuItem value="Default">Default</MenuItem>
               <MenuItem value="Fixed Position">Fixed Position</MenuItem>
-              <MenuItem value="Progressive I">Progressive I</MenuItem>
-              <MenuItem value="Progressive II">Progressive II</MenuItem>
             </Select>
           </Box>
 
@@ -149,6 +144,11 @@ const PlayersSessions = (): JSX.Element => {
               <MenuItem value="Beginner">Beginner</MenuItem>
               <MenuItem value="Intermediate">Intermediate</MenuItem>
               <MenuItem value="Expert">Expert</MenuItem>
+              <MenuItem value="Progressive">Progressive I</MenuItem>
+              <MenuItem value="Progressive2">Progressive II</MenuItem>
+              <MenuItem value="PerTime">PerTime</MenuItem>
+              <MenuItem value="LightsReaction">LightsReaction I</MenuItem>
+              <MenuItem value="LightsReaction2">LightsReaction II</MenuItem>
             </Select>
           </Box>
         </Box>
