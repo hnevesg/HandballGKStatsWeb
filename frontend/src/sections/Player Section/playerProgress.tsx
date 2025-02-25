@@ -20,9 +20,11 @@ const PlayerProgress = (): JSX.Element => {
   const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<string | null>(null);
   const [heatmapURL, setHeatmapURL] = useState<string | null>(null);
   const [progressTimesGraphURL, setProgressTimesGraphURL] = useState<string | null>(null);
+  const [progressLightsGraphURL, setProgressLightsGraphURL] = useState<string | null>(null);
   const [noSessions, setNoSessions] = useState(false);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const baseURL = 'http://localhost:8000/api';
 
   useEffect(() => {
     const state = window.history.state;
@@ -39,34 +41,64 @@ const PlayerProgress = (): JSX.Element => {
 
     const timestamp = new Date().getTime();
 
-    let progressSavesGraphUrl = `http://localhost:8000/api/saves-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
-    let heatmapUrl = `http://localhost:8000/api/heatmap-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
-    let progressTimesGraphUrl = `http://localhost:8000/api/times-progress/${player?.id}?begin_date=${beginDate}&end_date=${endDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+    const formattedBeginDate = `${beginDate} 00:00:00`;
+    const formattedEndDate = `${endDate} 23:59:59`;
 
-    try {
-      let savesResponse = await fetch(progressSavesGraphUrl);
-      let heatmapResponse = await fetch(heatmapUrl);
+    if (level === "LightsReaction" || level === "LightsReaction2") {
+      let progressLightsGraphUrl = `${baseURL}/lights-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+      try {
+        let lightsResponse = await fetch(progressLightsGraphUrl);
 
-      if (!savesResponse.ok || !heatmapResponse.ok) {
+        if (!lightsResponse.ok) {
+          setNoSessions(true);
+          setProgressSavesGraphURL(null);
+          setHeatmapURL(null);
+          setProgressTimesGraphURL(null);
+          setProgressLightsGraphURL(null);
+          return;
+        } else {
+          setNoSessions(false);
+          setProgressLightsGraphURL(progressLightsGraphUrl);
+        }
+      } catch (error) {
+        console.error("Error fetching session data", error);
         setNoSessions(true);
         setProgressSavesGraphURL(null);
         setHeatmapURL(null);
         setProgressTimesGraphURL(null);
-        return;
-      } else {
-        setNoSessions(false);
-        setProgressSavesGraphURL(progressSavesGraphUrl);
-        setHeatmapURL(heatmapUrl);
-        setProgressTimesGraphURL(progressTimesGraphUrl);
+        setProgressLightsGraphURL(null);
       }
-    } catch (error) {
-      console.error("Error fetching session data", error);
-      setNoSessions(true);
-      setProgressSavesGraphURL(null);
-      setHeatmapURL(null);
-      setProgressTimesGraphURL(null);
-    } finally {
-      setLoading(false);
+    } else {
+
+      let progressSavesGraphUrl = `${baseURL}/saves-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+      let heatmapUrl = `${baseURL}/heatmap-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+      let progressTimesGraphUrl = `${baseURL}/times-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+
+      try {
+        let savesResponse = await fetch(progressSavesGraphUrl);
+        let heatmapResponse = await fetch(heatmapUrl);
+
+        if (!savesResponse.ok || !heatmapResponse.ok) {
+          setNoSessions(true);
+          setProgressSavesGraphURL(null);
+          setHeatmapURL(null);
+          setProgressTimesGraphURL(null);
+          return;
+        } else {
+          setNoSessions(false);
+          setProgressSavesGraphURL(progressSavesGraphUrl);
+          setHeatmapURL(heatmapUrl);
+          setProgressTimesGraphURL(progressTimesGraphUrl);
+        }
+      } catch (error) {
+        console.error("Error fetching session data", error);
+        setNoSessions(true);
+        setProgressSavesGraphURL(null);
+        setHeatmapURL(null);
+        setProgressTimesGraphURL(null);
+      } finally {
+        setLoading(false);
+      }
     }
   }
 
@@ -125,8 +157,6 @@ const PlayerProgress = (): JSX.Element => {
               >
                 <MenuItem value="Default">Default</MenuItem>
                 <MenuItem value="Fixed Position">Fixed Position</MenuItem>
-                <MenuItem value="Progressive I">Progressive I</MenuItem>
-                <MenuItem value="Progressive II">Progressive II</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -141,6 +171,11 @@ const PlayerProgress = (): JSX.Element => {
                 <MenuItem value="Beginner">Beginner</MenuItem>
                 <MenuItem value="Intermediate">Intermediate</MenuItem>
                 <MenuItem value="Expert">Expert</MenuItem>
+                <MenuItem value="Progressive">Progressive I</MenuItem>
+                <MenuItem value="Progressive2">Progressive II</MenuItem>
+                <MenuItem value="PerTime">PerTime</MenuItem>
+                <MenuItem value="LightsReaction">LightsReaction I</MenuItem>
+                <MenuItem value="LightsReaction2">LightsReaction II</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -154,7 +189,6 @@ const PlayerProgress = (): JSX.Element => {
             </Button>
           </Box>
         </Box>
-
 
         {noSessions ? (
           <Typography variant="body1" align='center' color="error" sx={{
@@ -172,7 +206,6 @@ const PlayerProgress = (): JSX.Element => {
           <Grid container spacing={4}>
             <Grid item xs={12} md={9}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
-
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                     <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
@@ -193,54 +226,104 @@ const PlayerProgress = (): JSX.Element => {
                       </Box>
                     </Paper>
                   </Box>
-
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                    <Paper sx={{ p: 2, width: '100%' }}>
-                      <Typography variant="h6" gutterBottom>Metric 2</Typography>
-                      <Box sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                      }}>
-                        {progressTimesGraphURL ? (
-                          <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                        ) : (
-                          <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
-                        )}
+                  {(level !== "LightsReaction" && level !== "LightsReaction2" && level !== "PerTime") && (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                        <Paper sx={{ p: 2, width: '100%' }}>
+                          <Typography variant="h6" gutterBottom>Metric 2</Typography>
+                          <Box sx={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                          }}>
+                            {progressTimesGraphURL ? (
+                              <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            ) : (
+                              <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
+                            )}
+                          </Box>
+                        </Paper>
                       </Box>
-                    </Paper>
-                  </Box>
-                </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                  <Paper sx={{ p: 2, width: '100%' }}>
-                    <Typography variant="h6" gutterBottom>Metric 3</Typography>
-                    <Box sx={{
-                      position: 'relative',
-                      backgroundSize: 'contain',
-                      paddingBottom: '56.25%', // 16:9 aspect ratio
-                      backgroundPosition: 'center',
-                      backgroundRepeat: 'no-repeat',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      overflow: 'hidden',
-                    }}>
-                      <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
-                      {heatmapURL ? (
-                        <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
-                      ) : (
-                        <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
-                      )}
-                    </Box>
-                  </Paper>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Paper sx={{ p: 2, width: '100%' }}>
+                          <Typography variant="h6" gutterBottom>Metric 3</Typography>
+                          <Box sx={{
+                            position: 'relative',
+                            backgroundSize: 'contain',
+                            paddingBottom: '56.25%', // 16:9 aspect ratio
+                            backgroundPosition: 'center',
+                            backgroundRepeat: 'no-repeat',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            overflow: 'hidden',
+                          }}>
+                            <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                            {heatmapURL ? (
+                              <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
+                            ) : (
+                              <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                            )}
+                          </Box>
+                        </Paper>
+                      </Box>
+                    </>
+                  )}
+                  {(level === "PerTime") && (
+                    <>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                        <Paper sx={{ p: 2, width: '100%' }}>
+                          <Typography variant="h6" gutterBottom>Metric 2</Typography>
+                          <Box sx={{
+                            width: '100%',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                          }}>
+                            {progressTimesGraphURL ? (
+                              <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            ) : (
+                              <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
+                            )}
+                          </Box>
+                        </Paper>
+                      </Box>
+                    </>
+                  )}
                 </Box>
               </Box>
             </Grid>
           </Grid>
-        )
-        }
-      </Container >
+        )}
+
+        {noSessions ? (level === "LightsReaction" || level === "LightsReaction2") && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                  <Typography variant="h6" gutterBottom>Metric 1</Typography>
+                  <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}>
+                    {progressLightsGraphURL ? (
+                      <img src={progressLightsGraphURL} alt="Progress Lights Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">
+                        Loading progress graph...
+                      </Typography>
+                    )}
+                  </Box>
+                </Paper>
+              </Box>
+            </Box>
+          </Box>
+
+        ) : null}
+      </Container>
     </Box >
   );
 };

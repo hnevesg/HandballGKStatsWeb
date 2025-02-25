@@ -15,6 +15,7 @@ const Home = (): JSX.Element => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
+  const baseURL = 'http://localhost:8000/api';
 
   useEffect(() => {
     getUser();
@@ -22,7 +23,7 @@ const Home = (): JSX.Element => {
 
   const getUser = async () => {
     const state = window.history.state;
-    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    const response = await fetch(`${baseURL}/user/${state?.mail}`);
     if (response.ok) {
       const data = await response.json();
       setLoggedUser(data);
@@ -30,7 +31,7 @@ const Home = (): JSX.Element => {
   }
 
   const getPlayers = async () => {
-    const response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
+    const response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
     if (response.ok) {
       const data = await response.json();
       setPlayers(data);
@@ -49,14 +50,14 @@ const Home = (): JSX.Element => {
 
   const getSessions = async () => {
     if (loggedUser?.role == Rol.PORTERO) {
-      const response = await fetch(`http://localhost:8000/api/sessions/${loggedUser?.id}`);
+      const response = await fetch(`${baseURL}/sessions/${loggedUser?.id}`);
       if (response.ok) {
         const data = await response.json();
         const sortedSessions = data.sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setSessions(sortedSessions.slice(0, 5));
       }
     } else {
-      const response = await fetch(`http://localhost:8000/api/team-sessions/${loggedUser?.teamID}`);
+      const response = await fetch(`${baseURL}/team-sessions/${loggedUser?.teamID}`);
       if (response.ok) {
         const data = await response.json();
         const sortedSessions = data.sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime());

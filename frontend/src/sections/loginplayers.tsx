@@ -12,6 +12,7 @@ const LoginPlayers = (): JSX.Element => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [, setLocation] = useLocation();
+  const baseURL = 'http://localhost:8000/api';
 
   const handleLogin = async () => {
     setEmailError('');
@@ -33,7 +34,7 @@ const LoginPlayers = (): JSX.Element => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/login-players', {
+      const response = await fetch(`${baseURL}/login-players`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

@@ -16,6 +16,7 @@ const PlayerSection = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
+  const baseURL = 'http://localhost:8000/api';
 
   useEffect(() => {
     getUser();
@@ -23,7 +24,7 @@ const PlayerSection = (): JSX.Element => {
 
   const getUser = async () => {
     const state = window.history.state;
-    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    const response = await fetch(`${baseURL}/user/${state?.mail}`);
     if (response.ok) {
       const data = await response.json();
       setLoggedUser(data);
@@ -86,7 +87,7 @@ const PlayerSection = (): JSX.Element => {
     if (!loggedUser) return;
     let response;
     if (loggedUser?.role == Rol.PORTERO) {
-      response = await fetch(`http://localhost:8000/api/user/${loggedUser?.email}`);
+      response = await fetch(`${baseURL}/user/${loggedUser?.email}`);
       const data = await response?.json();
       if (response?.ok) {
         const [firstName = '', lastName = ''] = data.name.split(' ');
@@ -98,7 +99,7 @@ const PlayerSection = (): JSX.Element => {
         console.error('Failed to fetch player:', data.message);
       }
     } else if (loggedUser?.role == Rol.ENTRENADOR) {
-      response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
+      response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
       const data = await response?.json();
 
       if (response?.ok) {

@@ -18,13 +18,14 @@ const PlayersSessions = (): JSX.Element => {
   const [player1Sessions, setPlayer1Sessions] = useState<Session[]>([]);
   const [player2Sessions, setPlayer2Sessions] = useState<Session[]>([]);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
+  const baseURL = 'http://localhost:8000/api';
 
   const getSessionsP1 = async () => {
     if (!player1) return;
     try {
       console.log("GetSessionsP1")
       console.log(player1)
-      const response = await fetch(`http://localhost:8000/api/sessions/${player1.id}?mode=${mode}&level=${level}`, {
+      const response = await fetch(`${baseURL}/sessions/${player1.id}?mode=${mode}&level=${level}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -46,7 +47,7 @@ const PlayersSessions = (): JSX.Element => {
     try {
       console.log("GetSessionsP2")
       console.log(player2)
-      const response = await fetch(`http://localhost:8000/api/sessions/${player2.id}?mode=${mode}&level=${level}`, {
+      const response = await fetch(`${baseURL}/sessions/${player2.id}?mode=${mode}&level=${level}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

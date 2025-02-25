@@ -32,6 +32,7 @@ const PlayersComparison = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
+  const baseURL = 'http://localhost:8000/api';
 
   useEffect(() => {
     getUser();
@@ -39,7 +40,7 @@ const PlayersComparison = (): JSX.Element => {
 
   const getUser = async () => {
     const state = window.history.state;
-    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    const response = await fetch(`${baseURL}/user/${state?.mail}`);
     if (response.ok) {
       const data = await response.json();
       setLoggedUser(data);
@@ -105,7 +106,7 @@ const PlayersComparison = (): JSX.Element => {
   const getPlayers = async () => {
     if (loggedUser?.role != Rol.ENTRENADOR) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/players/${loggedUser?.teamID}`);
+      const response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
       const data = await response.json();
 
       if (response.ok) {

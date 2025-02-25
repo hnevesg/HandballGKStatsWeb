@@ -10,6 +10,7 @@ import { User } from '../types/user';
 
 const Streaming = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
+  const baseURL = 'http://localhost:8000/api';
 
   useEffect(() => {
     getUser();
@@ -17,7 +18,7 @@ const Streaming = (): JSX.Element => {
 
   const getUser = async () => {
     const state = window.history.state;
-    const response = await fetch(`http://localhost:8000/api/user/${state?.mail}`);
+    const response = await fetch(`${baseURL}/user/${state?.mail}`);
     if (response.ok) {
       const data = await response.json();
       setLoggedUser(data);

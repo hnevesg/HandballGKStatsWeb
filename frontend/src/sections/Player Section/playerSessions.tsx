@@ -16,11 +16,12 @@ const PlayerSessions = (): JSX.Element => {
     const [, navigate] = useLocation();
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
+    const baseURL = 'http://localhost:8000/api';
 
     const getSessions = async () => {
         if (!player) return;
         try {
-            const response = await fetch(`http://localhost:8000/api/sessions/${player.id}`, {
+            const response = await fetch(`${baseURL}/sessions/${player.id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
@@ -94,36 +95,36 @@ const PlayerSessions = (): JSX.Element => {
                     <Typography variant="h6">{player?.name}</Typography>
                 </Box>
 
-                <TableContainer component={Paper} sx={{maxHeight: '50vh', overflow:'auto'}}>
-                <Table stickyHeader>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell>Date</TableCell>
-                            <TableCell>Game Mode</TableCell>
-                            <TableCell>Difficulty</TableCell>
-                            <TableCell>Details</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {sessions.map((session) => (
-                            <TableRow key={session.id}>
-                                <TableCell>{formatDate(session.date.toString())}</TableCell>
-                                <TableCell>{session.game_mode}</TableCell>
-                                <TableCell>{session.prestige_level}</TableCell>
-                                <TableCell>
-                                    <IconButton size="small"
-                                        onClick={() => handleSessionSelect(session)}
-                                        sx={{ mr: 2 }}
-                                    >
-                                        <LaunchIcon />
-                                    </IconButton>
-                                </TableCell>
+                <TableContainer component={Paper} sx={{ maxHeight: '50vh', overflow: 'auto' }}>
+                    <Table stickyHeader>
+                        <TableHead>
+                            <TableRow>
+                                <TableCell>Date</TableCell>
+                                <TableCell>Game Mode</TableCell>
+                                <TableCell>Difficulty</TableCell>
+                                <TableCell>Details</TableCell>
                             </TableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
-        </Container>
+                        </TableHead>
+                        <TableBody>
+                            {sessions.map((session) => (
+                                <TableRow key={session.id}>
+                                    <TableCell>{formatDate(session.date.toString())}</TableCell>
+                                    <TableCell>{session.game_mode}</TableCell>
+                                    <TableCell>{session.prestige_level}</TableCell>
+                                    <TableCell>
+                                        <IconButton size="small"
+                                            onClick={() => handleSessionSelect(session)}
+                                            sx={{ mr: 2 }}
+                                        >
+                                            <LaunchIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Container>
         </Box >
     );
 };

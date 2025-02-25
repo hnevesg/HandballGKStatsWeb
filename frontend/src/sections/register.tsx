@@ -17,6 +17,7 @@ const Register = () => {
   const [, setLocation] = useLocation();
   const [userType, setUserType] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('1');
+  const baseURL = 'http://localhost:8000/api';
 
   const teams = [
     { label: 'BM Pozuelo Cva', id: 1 },
@@ -58,7 +59,7 @@ const Register = () => {
 
   const registerData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/register', {
+      const response = await fetch(`${baseURL}/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

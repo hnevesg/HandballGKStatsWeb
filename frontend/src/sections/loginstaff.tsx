@@ -12,6 +12,7 @@ const LoginStaff = (): JSX.Element => {
   const [passwordError, setPasswordError] = useState('');
   const [loginError, setLoginError] = useState('');
   const [, setLocation] = useLocation();
+  const baseURL = 'http://localhost:8000/api';
 
   const handleLogin = async () => {
     setEmailError('');
@@ -35,7 +36,7 @@ const LoginStaff = (): JSX.Element => {
 
   const fetchData = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/login-staff', {
+      const response = await fetch(`${baseURL}/login-staff`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
