@@ -29,8 +29,7 @@ const ComparisonDetails = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [sessionDataP1, setSessionDataP1] = useState<SessionData | null>();
   const [sessionDataP2, setSessionDataP2] = useState<SessionData | null>();
-  const [plotTimesP1URL, setPlotTimesP1URL] = useState<any>(null);
-  const [plotTimesP2URL, setPlotTimesP2URL] = useState<any>(null);
+  const baseURL = 'http://localhost:8000/api';
 
   useEffect(() => {
     const state = window.history.state;
@@ -60,7 +59,7 @@ const ComparisonDetails = (): JSX.Element => {
   const getSessionsData = async () => {
     if (!session1 || !session2) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/sessionData/${session1.date}`);
+      const response = await fetch(`${baseURL}/sessionData/${session1.date}`);
       if (response.ok) {
         console.log("Session Tracking P1 ANSWER")
         const dataP1 = await response.json();
@@ -69,7 +68,7 @@ const ComparisonDetails = (): JSX.Element => {
         console.error('Error fetching P1 session tracking');
       }
 
-      let responseP2 = await fetch(`http://localhost:8000/api/sessionData/${session2.date}`);
+      let responseP2 = await fetch(`${baseURL}/sessionData/${session2.date}`);
       if (responseP2.ok) {
         console.log("Session Tracking P2 ANSWER")
         const dataP2 = await responseP2.json();
@@ -85,7 +84,7 @@ const ComparisonDetails = (): JSX.Element => {
   const getSessionsTracking = async () => {
     if (!session1 || !session2) return;
     try {
-      const response = await fetch(`http://localhost:8000/api/sessionTracking/${session1.date}`);
+      const response = await fetch(`${baseURL}/sessionTracking/${session1.date}`);
       if (response.ok) {
         console.log("Session Tracking P1 ANSWER")
         const dataP1 = await response.json();
@@ -94,7 +93,7 @@ const ComparisonDetails = (): JSX.Element => {
         console.error('Error fetching P1 session tracking');
       }
 
-      let responseP2 = await fetch(`http://localhost:8000/api/sessionTracking/${session2.date}`);
+      let responseP2 = await fetch(`${baseURL}/sessionTracking/${session2.date}`);
       if (responseP2.ok) {
         console.log("Session Tracking P2 ANSWER")
         const dataP2 = await responseP2.json();
@@ -108,20 +107,14 @@ const ComparisonDetails = (): JSX.Element => {
   }
 
   const getPlots = () => {
-    let barchartShootsUrl = `http://localhost:8000/api/barchart-comparison/${session1?.date}/${session2?.date}`;
+    let barchartShootsUrl = `${baseURL}/barchart-comparison/${session1?.date}/${session2?.date}`;
     setBarchartURL(barchartShootsUrl);
 
-    let heatmapP1Url = `http://localhost:8000/api/heatmap/${session1?.date}`;
+    let heatmapP1Url = `${baseURL}/heatmap/${session1?.date}`;
     setHeatmapP1URL(heatmapP1Url);
 
-    let heatmapP2Url = `http://localhost:8000/api/heatmap/${session2?.date}`;
+    let heatmapP2Url = `${baseURL}/heatmap/${session2?.date}`;
     setHeatmapP2URL(heatmapP2Url);
-
-    let plotTimesP1Url = `http://localhost:8000/api/plot-times/${session1?.date}`;
-    setPlotTimesP1URL(plotTimesP1Url);
-
-    let plotTimesP2Url = `http://localhost:8000/api/plot-times/${session2?.date}`;
-    setPlotTimesP2URL(plotTimesP2Url);
   }
 
   useEffect(() => {
@@ -157,7 +150,7 @@ const ComparisonDetails = (): JSX.Element => {
     <Box>
       <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
+        <Box sx={{ display: 'flex', alignItems: "center", mb: 6 }}>
           <IconButton
             onClick={goBack}
             sx={{ mr: 2 }}
@@ -169,12 +162,12 @@ const ComparisonDetails = (): JSX.Element => {
 
         <Box sx={{
           display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: "center",
+          alignItems: "center",
           gap: 2,
           mb: 6
         }}>
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: "center" }}>
             <Avatar
               sx={{
                 width: 60,
@@ -190,15 +183,15 @@ const ComparisonDetails = (): JSX.Element => {
 
           <Typography variant="h6" sx={{ mx: 1 }}>vs</Typography>
 
-          <Box sx={{ textAlign: 'center' }}>
+          <Box sx={{ textAlign: "center" }}>
             <Avatar
               sx={{
                 width: 60,
                 height: 60,
                 bgcolor: '#00CED1',
                 mb: 1,
-                alignContent: 'center',
-                alignItems: 'center'
+                alignContent: "center",
+                alignItems: "center"
               }}
             >
               {player2?.avatar}
@@ -212,150 +205,122 @@ const ComparisonDetails = (): JSX.Element => {
           flexDirection: 'column',
           gap: 4
         }}>
-          {/* Métrica 1 */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
 
-            <Paper sx={{ flex: 1, p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Summary of Shoots
-              </Typography>
-              <Box sx={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}>
-                {barchartURL ? (
-                  <img src={barchartURL} alt="barchart" style={{ width: '100%', objectFit: 'contain' }} />
-                ) : (
-                  <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
-                )}
-              </Box>
-            </Paper>
+            {(session1?.prestige_level !== "LightsReaction" && session1?.prestige_level !== "LightsReaction2") && (
+              <>
+                {/* Métrica 1 */}
+                < Paper sx={{ flex: 1, p: 3 }}>
+                  <Typography variant="h6" gutterBottom align="center">Summary of Shoots</Typography>
+                  <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: "center",
+                    alignItems: "center"
+                  }}>
+                    {barchartURL ? (
+                      <img src={barchartURL} alt="barchart" style={{ width: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
+                    )}
+                  </Box>
+                </Paper>
+              </>
+            )}
 
             {/* Métrica 2 */}
             <Paper sx={{ flex: 1, p: 3 }}>
-              <TableContainer component={Paper}>
+              <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
+              <TableContainer component={Paper} sx={{ border: '1px solid black'}}>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell align='center'>Metric</TableCell>
-                      <TableCell align="center">Player 1</TableCell>
-                      <TableCell align="center">Player 2</TableCell>
+                      <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>Metric</TableCell>
+                      <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>{player1?.name}</TableCell>
+                      <TableCell align="center" sx={{ borderBottom: '1px solid black'}}>{player2?.name}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     <TableRow>
-                      <TableCell component="th" scope="row" align="center">Left Hand Speed</TableCell>
-                      <TableCell align="center">{LhandSpeedP1?.toFixed(3)}s</TableCell>
+                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Session Duration</b></TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{sessionDataP1?.session_time}s</TableCell>
+                      <TableCell align="center">{sessionDataP2?.session_time}s</TableCell>
+                    </TableRow>
+                    {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
+                      <>
+                        <TableRow>
+                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Nº of lights</b></TableCell>
+                          <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{sessionDataP1?.n_lights}</TableCell>
+                          <TableCell align="center">{sessionDataP2?.n_lights}</TableCell>
+                        </TableRow>
+                      </>
+                    )}
+                    <TableRow>
+                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Left Hand Speed</b></TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{LhandSpeedP1?.toFixed(3)}s</TableCell>
                       <TableCell align="center">{LhandSpeedP2?.toFixed(3)}s</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell component="th" scope="row" align="center">Right Hand Speed</TableCell>
-                      <TableCell align="center">{RhandSpeedP1?.toFixed(3)}s</TableCell>
+                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Right Hand Speed</b></TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{RhandSpeedP1?.toFixed(3)}s</TableCell>
                       <TableCell align="center">{RhandSpeedP2?.toFixed(3)}s</TableCell>
                     </TableRow>
-                    <TableRow>
-                      <TableCell component="th" scope="row" align="center">Session Duration</TableCell>
-                      <TableCell align="center">{sessionDataP1?.session_time}s</TableCell>
-                      <TableCell align="center">{sessionDataP2?.session_time}s</TableCell>
-                    </TableRow>
-
                   </TableBody>
                 </Table>
               </TableContainer>
             </Paper>
           </Box>
 
-          {/* Métrica 3 */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
-            <Paper sx={{ flex: 1, p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Heat Maps
-              </Typography>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 4
-              }}>
-                {/* Player 1 Heatmap */}
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Player 1
-                  </Typography>
-                  <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
-                    <img src="/porteria.png" alt="Portería" style={{ inset: 0, position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
-                    {heatmapP1URL ? (
-                      <img src={heatmapP1URL} alt="Player 1 Heat Map" style={{ inset: 0, position: 'absolute', width: '100%', height: '67.8%', objectFit: 'contain', zIndex: 2, top: '5%' }} />
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
-                    )}
-                  </Box>
-                </Box>
-                {/* Player 2 Heatmap */}
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Player 2
-                  </Typography>
-                  <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
-                    <img src="/porteria.png" alt="Portería" style={{ inset: 0, position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
-                    {heatmapP2URL ? (
-                      <img src={heatmapP2URL} alt="Player 2 Heat Map" style={{ inset: 0, position: 'absolute', objectFit: 'contain', width: '100%', height: '67.8%', zIndex: 2, top: '5%' }} />
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
-                    )}
-                  </Box>
-                </Box>
-              </Box>
-            </Paper>
-          </Box>
+          {(session1?.prestige_level !== "LightsReaction" && session1?.prestige_level !== "LightsReaction2") && (
+            <>
 
-          {/* Métrica 4 */}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
-            <Paper sx={{ flex: 1, p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Reaction Times
-              </Typography>
-              <Box sx={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: 4
-              }}>
-                {/* Player 1 Plot */}
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Player 1
-                  </Typography>
-                  <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
-                    {plotTimesP1URL ? (
-                      <img src={plotTimesP1URL} alt="Player 1 Reaction Times" style={{ inset: 0, position: 'absolute', width: '100%', height: '100%', objectFit: 'contain', zIndex: 2, top: '5%' }} />
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
-                    )}
+              {/* Métrica 3 */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+                <Paper sx={{ flex: 1, p: 3 }}>
+                  <Typography variant="h6" gutterBottom align="center"> Heat Maps</Typography>
+                  <Box sx={{
+                    display: 'flex',
+                    justifyContent: "center",
+                    alignItems: "center",
+                    gap: 4
+                  }}>
+                    {/* Player 1 Heatmap */}
+                    <Box sx={{ textAlign: "center", flex: 1 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        {player1?.name}
+                      </Typography>
+                      <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
+                        <img src="/porteria.png" alt="Portería" style={{ inset: 0, position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                        {heatmapP1URL ? (
+                          <img src={heatmapP1URL} alt="Player 1 Heat Map" style={{ inset: 0, position: 'absolute', width: '100%', height: '67.8%', objectFit: 'contain', zIndex: 2, top: '5%' }} />
+                        ) : (
+                          <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                        )}
+                      </Box>
+                    </Box>
+                    {/* Player 2 Heatmap */}
+                    <Box sx={{ textAlign: "center", flex: 1 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        {player2?.name}
+                      </Typography>
+                      <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
+                        <img src="/porteria.png" alt="Portería" style={{ inset: 0, position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                        {heatmapP2URL ? (
+                          <img src={heatmapP2URL} alt="Player 2 Heat Map" style={{ inset: 0, position: 'absolute', objectFit: 'contain', width: '100%', height: '67.8%', zIndex: 2, top: '5%' }} />
+                        ) : (
+                          <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                        )}
+                      </Box>
+                    </Box>
                   </Box>
-                </Box>
-                {/* Player 2 Plot */}
-                <Box sx={{ textAlign: 'center', flex: 1 }}>
-                  <Typography variant="subtitle2" gutterBottom>
-                    Player 2
-                  </Typography>
-                  <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
-                    {plotTimesP2URL ? (
-                      <img src={plotTimesP2URL} alt="Player 2 Reaction Times" style={{ inset: 0, position: 'absolute', objectFit: 'contain', width: '100%', height: '100%', zIndex: 2, top: '5%' }} />
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
-                    )}
-                  </Box>
-                </Box>
+                </Paper>
               </Box>
-            </Paper>
-          </Box>
+            </>
+          )}
 
         </Box>
-      </Container>
-    </Box>
+      </Container >
+    </Box >
   );
 };
 

@@ -117,67 +117,41 @@ const Home = (): JSX.Element => {
         </Box>
 
         <Container maxWidth="md" sx={{ mb: 6 }}>
-          {loggedUser?.role === Rol.PORTERO ? (
+          <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+            <Typography variant="h5" gutterBottom align="center">Last Sessions</Typography>
             <TableContainer
               component={Paper}
               sx={{
-                width: '100%',
-                maxWidth: 600,
+                width: '70%',
                 mx: 'auto',
-                boxShadow: 2
+                border: '1px solid black',
               }}
             >
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Session ID</TableCell>
-                    <TableCell>Date</TableCell>
+                    {loggedUser?.role === Rol.ENTRENADOR &&
+                      <TableCell sx={{ borderBottom: '1px solid black', borderRight: '1px solid black', textAlign: 'center' }} >User</TableCell>
+                    }
+                    <TableCell sx={{ borderBottom: '1px solid black', textAlign: 'center' }}>Date</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {sessions.map((session) => (
                     <TableRow key={session.id}>
-                      <TableCell>{session.id}</TableCell>
-                      <TableCell>{formatDate(session.date).toString()}</TableCell>
+                      {loggedUser?.role === Rol.ENTRENADOR && (
+                        <TableCell sx={{ borderRight: '1px solid black', textAlign: 'center' }}>{getPlayerName(session.player_id)}</TableCell>
+                      )}
+                      <TableCell sx={{ textAlign: 'center' }}>{formatDate(session.date).toString()}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </TableContainer>
-          ) : (
-            <TableContainer
-              component={Paper}
-              sx={{
-                width: '100%',
-                maxWidth: 600,
-                mx: 'auto',
-                boxShadow: 2
-              }}
-            >
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Session ID</TableCell>
-                    <TableCell>User</TableCell>
-                    <TableCell>Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sessions.map((session) => (
-                    <TableRow key={session.id}>
-                      <TableCell>{session.id}</TableCell>
-                      <TableCell>{getPlayerName(session.player_id)}</TableCell>
-                      <TableCell>{formatDate(session.date).toString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
+          </Paper>
         </Container>
-
-      </Container>
-    </Box>
+      </Container >
+    </Box >
   );
 };
 

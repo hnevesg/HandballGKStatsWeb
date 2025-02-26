@@ -1,4 +1,7 @@
-import { Box, Container, Typography, Paper, Grid, IconButton, Avatar } from '@mui/material';
+import {
+    Box, Container, Typography, Paper, Grid, IconButton, Avatar,
+    TableContainer, Table, TableCell, TableHead, TableRow, TableBody,
+} from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLocation } from 'wouter';
 import { useEffect, useState } from 'react';
@@ -144,21 +147,21 @@ const SessionDetails = (): JSX.Element => {
         <Box>
             <Navbar user={loggedUser} />
             <Container maxWidth="lg" sx={{ mt: 4 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+                <Box sx={{ display: 'flex', alignItems: "center", mb: 4 }}>
                     <IconButton
                         onClick={goBack}
                         sx={{ mr: 2 }}
                     >
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h4" align='center'>Statistics</Typography>
+                    <Typography variant="h4" align="center">Statistics</Typography>
                 </Box>
 
                 <Grid container spacing={4}>
                     {/* Left Column - Player Info and Session Details */}
                     <Grid item xs={12} md={3}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            <Box sx={{ display: 'flex', alignItems: "center", gap: 2 }}>
                                 <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
                                 <Typography variant="h6">{player?.name}</Typography>
                             </Box>
@@ -193,15 +196,35 @@ const SessionDetails = (): JSX.Element => {
                                     {/* Metric 3 - Summary Table */}
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            <Typography variant="h6" gutterBottom>Summary of Data</Typography>
-                                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                                                <Typography fontWeight="bold"> • Session Duration</Typography>
-                                                <Typography>{sessionData?.session_time}s</Typography>
-                                                <Typography fontWeight="bold"> • Nº of lights</Typography>
-                                                <Typography>{sessionData?.n_lights}</Typography>
-                                                <Typography fontWeight="bold">• Average Hand Speed</Typography>
-                                                <Typography>Left: {LhandSpeed?.toFixed(3)} s  <br /> Right: {RhandSpeed?.toFixed(3)}s</Typography>
-                                            </Box>
+                                            <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
+                                            <TableContainer component={Paper} sx={{ border: '1px solid black'}}>
+                                                <Table>
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>Metric</TableCell>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black'}}>Data</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Session Duration</b></TableCell>
+                                                            <TableCell align="center">{sessionData?.session_time}s</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Nº of Lights</b></TableCell>
+                                                            <TableCell align="center">{sessionData?.n_lights}</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Left Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}s</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Right Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}s</TableCell>
+                                                        </TableRow>
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
                                         </Paper>
                                     </Box>
                                 </>
@@ -211,12 +234,12 @@ const SessionDetails = (): JSX.Element => {
                                     {/* Metric 1 - Bar Chart */}
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ flex: 1, p: 3, minWidth: { xs: '100%', md: '45%' } }}>
-                                            <Typography variant="h6" gutterBottom>Bar Chart of Shoots</Typography>
+                                            <Typography variant="h6" gutterBottom align="center">Bar Chart of Shoots</Typography>
                                             <Box sx={{
                                                 width: '100%',
                                                 display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center'
+                                                justifyContent: "center",
+                                                alignItems: "center"
                                             }}>
                                                 {barchartShootsURL ? (
                                                     <img src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -228,12 +251,12 @@ const SessionDetails = (): JSX.Element => {
                                     </Box>
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ flex: 1, p: 3, minWidth: { xs: '100%', md: '45%' } }}>
-                                            <Typography variant="h6" gutterBottom>Bar Chart of Saves per Bodypart</Typography>
+                                            <Typography variant="h6" gutterBottom align="center">Bar Chart of Saves per Bodypart</Typography>
                                             <Box sx={{
                                                 width: '100%',
                                                 display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center'
+                                                justifyContent: "center",
+                                                alignItems: "center"
                                             }}>
                                                 {barchartSavesURL ? (
                                                     <img src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
@@ -246,15 +269,15 @@ const SessionDetails = (): JSX.Element => {
                                     {/* Metric 2 - HeatMap */}
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            <Typography variant="h6" gutterBottom>Heat Map of Goal Zones</Typography>
+                                            <Typography variant="h6" gutterBottom align="center">Heat Map of Goal Zones</Typography>
                                             <Box sx={{
                                                 position: 'relative',
                                                 backgroundSize: 'contain',
                                                 paddingBottom: '56.25%', // 16:9 aspect ratio
-                                                backgroundPosition: 'center',
+                                                backgroundPosition: "center",
                                                 backgroundRepeat: 'no-repeat',
-                                                alignItems: 'center',
-                                                justifyContent: 'center'
+                                                alignItems: "center",
+                                                justifyContent: "center"
                                             }}>
                                                 <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
                                                 {heatmapURL ? (
@@ -269,15 +292,35 @@ const SessionDetails = (): JSX.Element => {
                                     {/* Metric 3 - Summary Table */}
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            <Typography variant="h6" gutterBottom>Summary of Data</Typography>
-                                            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
-                                                <Typography fontWeight="bold"> • Session Duration</Typography>
-                                                <Typography>{sessionData?.session_time}s</Typography>
-                                                <Typography fontWeight="bold">• Saves percentage</Typography>
-                                                <Typography>{savesPercentage}%</Typography>
-                                                <Typography fontWeight="bold">• Average Hand Speed</Typography>
-                                                <Typography>Left: {LhandSpeed?.toFixed(3)} s  <br /> Right: {RhandSpeed?.toFixed(3)}s</Typography>
-                                            </Box>
+                                            <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
+                                            <TableContainer component={Paper} sx={{ border: '1px solid black'}}>
+                                                <Table>
+                                                    <TableHead>
+                                                        <TableRow>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>Metric</TableCell>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black'}}>Data</TableCell>
+                                                        </TableRow>
+                                                    </TableHead>
+                                                    <TableBody>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Session Duration</b></TableCell>
+                                                            <TableCell align="center">{sessionData?.session_time}s</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Saves Percentage</b></TableCell>
+                                                            <TableCell align="center">{savesPercentage}%</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Left Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}s</TableCell>
+                                                        </TableRow>
+                                                        <TableRow>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Right Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}s</TableCell>
+                                                        </TableRow>
+                                                    </TableBody>
+                                                </Table>
+                                            </TableContainer>
                                         </Paper>
                                     </Box>
 

@@ -5,7 +5,7 @@ import { useLocation } from 'wouter';
 import { User } from '../../types/user';
 import Navbar from '../../components/navBar';
 import { Session } from '../../types/session';
-import { formatDate, PlayerTable } from '../../components/utils';
+import { PlayerTable } from '../../components/utils';
 
 const PlayersSessions = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -148,8 +148,8 @@ const PlayersSessions = (): JSX.Element => {
               <MenuItem value="Progressive">Progressive I</MenuItem>
               <MenuItem value="Progressive2">Progressive II</MenuItem>
               <MenuItem value="PerTime">PerTime</MenuItem>
-              <MenuItem value="LightsReaction">LightsReaction I</MenuItem>
-              <MenuItem value="LightsReaction2">LightsReaction II</MenuItem>
+              <MenuItem value="LightsReaction">Lights Reaction I</MenuItem>
+              <MenuItem value="LightsReaction2">Lights Reaction II</MenuItem>
             </Select>
           </Box>
         </Box>
