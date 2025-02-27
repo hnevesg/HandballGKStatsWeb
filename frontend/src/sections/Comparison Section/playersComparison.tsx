@@ -32,7 +32,7 @@ const PlayersComparison = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
-  const baseURL = 'http://localhost:8000/api';
+  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     getUser();

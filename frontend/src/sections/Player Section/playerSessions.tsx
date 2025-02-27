@@ -17,7 +17,7 @@ const PlayerSessions = (): JSX.Element => {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
     const [level, setLevel] = useState('Beginner');
-    const baseURL = 'http://localhost:8000/api';
+    const baseURL = 'http://192.168.43.173:12345';
 
     const getSessions = async () => {
         if (!player) return;

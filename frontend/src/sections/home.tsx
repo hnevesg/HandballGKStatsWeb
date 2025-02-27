@@ -15,7 +15,7 @@ const Home = (): JSX.Element => {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
-  const baseURL = 'http://localhost:8000/api';
+  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     getUser();

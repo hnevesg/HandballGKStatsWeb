@@ -12,7 +12,7 @@ const LoginPlayers = (): JSX.Element => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [, setLocation] = useLocation();
-  const baseURL = 'http://localhost:8000/api';
+  const baseURL = 'http://192.168.43.173:12345';
 
   const handleLogin = async () => {
     setEmailError('');

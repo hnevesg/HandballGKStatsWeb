@@ -29,7 +29,7 @@ const ComparisonDetails = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [sessionDataP1, setSessionDataP1] = useState<SessionData | null>();
   const [sessionDataP2, setSessionDataP2] = useState<SessionData | null>();
-  const baseURL = 'http://localhost:8000/api';
+  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     const state = window.history.state;

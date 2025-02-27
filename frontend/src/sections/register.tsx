@@ -17,7 +17,7 @@ const Register = () => {
   const [, setLocation] = useLocation();
   const [userType, setUserType] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('1');
-  const baseURL = 'http://localhost:8000/api';
+  const baseURL = 'http://192.168.43.173:12345';
 
   const teams = [
     { label: 'BM Pozuelo Cva', id: 1 },

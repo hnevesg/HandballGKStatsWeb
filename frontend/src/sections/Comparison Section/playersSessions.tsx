@@ -18,7 +18,7 @@ const PlayersSessions = (): JSX.Element => {
   const [player1Sessions, setPlayer1Sessions] = useState<Session[]>([]);
   const [player2Sessions, setPlayer2Sessions] = useState<Session[]>([]);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
-  const baseURL = 'http://localhost:8000/api';
+  const baseURL = 'http://192.168.43.173:12345';
 
   const getSessionsP1 = async () => {
     if (!player1) return;

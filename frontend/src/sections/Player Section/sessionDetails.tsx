@@ -27,7 +27,7 @@ const SessionDetails = (): JSX.Element => {
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
-    const baseURL = 'http://localhost:8000/api';
+    const baseURL = 'http://192.168.43.173:12345';
 
     const getSessionData = async () => {
         if (!session) return;
