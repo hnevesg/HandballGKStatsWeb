@@ -1,24 +1,31 @@
-from io import BytesIO
+import os
+import shutil
 import signal
 import sys
-from fastapi import FastAPI, HTTPException, Response, Query
+import numpy as np
+import logging
+import matplotlib
+matplotlib.use("Agg")
+from io import BytesIO
+from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import numpy as np
-import logging
-import matplotlib
-matplotlib.use("Agg")
 from matplotlib import pyplot
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap
 
 from roles import Rol
 
-DATABASE_URL = "mysql+pymysql://root:helena@localhost/gk_stats_web"  
-logging.basicConfig(level=logging.INFO)
+UPLOAD_FOLDER = "uploads"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+DATABASE_URL = "mysql+pymysql://root:helena@192.168.43.173/gk_stats_web"  
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -109,7 +116,7 @@ class RegisterRequest(BaseModel):
     user_type: str  # 'portero' o 'entrenador'
 
 # ------------------- Authentication -------------------
-@app.post("/api/register")
+@app.post("/register")
 def register_user(request: RegisterRequest):
     """Función para registrar un nuevo usuario."""
     session = SessionLocal()
@@ -130,7 +137,7 @@ def register_user(request: RegisterRequest):
         finally:
             session.close()
             
-@app.post("/api/login-staff")
+@app.post("/login-staff")
 async def login(request: LoginRequest):
     """Función para iniciar sesión del cuerpo técnico."""
     session = SessionLocal()
@@ -146,7 +153,7 @@ async def login(request: LoginRequest):
         raise HTTPException(status_code=404, detail="User not found")
 
 
-@app.post("/api/login-players")
+@app.post("/login-players")
 async def login(request: LoginRequest):
     """Función para iniciar sesión de jugadores."""
     logging.info(f"Received login request for email: {request.email}")
@@ -164,7 +171,7 @@ async def login(request: LoginRequest):
     
     
 # ------------------- Players -------------------
-@app.get("/api/players/{team_id}")
+@app.get("/players/{team_id}")
 def get_players(team_id: int):
     """Función para obtener la lista de jugadores."""
     session = SessionLocal()
@@ -172,7 +179,7 @@ def get_players(team_id: int):
     session.close()
     return players
 
-@app.get("/api/user/{email}")
+@app.get("/user/{email}")
 def get_user(email: str):
     """Función para obtener un jugador por email."""
     session = SessionLocal()
@@ -181,7 +188,7 @@ def get_user(email: str):
     return player
 
 # ------------------- Sessions -------------------
-@app.get("/api/sessions/{player_id}")
+@app.get("/sessions/{player_id}")
 def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(None), begin_date: str = Query(None), end_date: str = Query(None)):
     """Función para obtener la lista de sesiones de un jugador."""
     session = SessionLocal()
@@ -201,7 +208,7 @@ def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(Non
     session.close()
     return sessions
 
-@app.get("/api/team-sessions/{team_id}")
+@app.get("/team-sessions/{team_id}")
 def get_team_sessions(team_id: int):
     """Función para obtener la lista de sesiones de un equipo."""
     session = SessionLocal()
@@ -209,7 +216,7 @@ def get_team_sessions(team_id: int):
     session.close()
     return sessions
 
-@app.get("/api/sessionData/{session_date}")
+@app.get("/sessionData/{session_date}")
 def get_session_data(session_date: str):
     """Función para obtener los datos de una sesión."""
     session = SessionLocal()
@@ -217,7 +224,7 @@ def get_session_data(session_date: str):
     session.close()
     return data
 
-@app.get("/api/sessionTracking/{session_date}")
+@app.get("/sessionTracking/{session_date}")
 def get_session_tracking(session_date: str):
     """Función para obtener el tracking de una sesión."""
     session = SessionLocal()
@@ -226,7 +233,7 @@ def get_session_tracking(session_date: str):
     return sessions 
 
 # ------------------- Metrics Charts -------------------
-@app.get("/api/barchart-shoots/{session_date}")
+@app.get("/barchart-shoots/{session_date}")
 def get_barchart_shoots(session_date: str):
     """Función que crea el gráfico de barras de lanzamientos de una sesión."""
     session_data = get_session_data(session_date)
@@ -266,7 +273,7 @@ def get_barchart_shoots(session_date: str):
         
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/api/barchart-saves/{session_date}")
+@app.get("/barchart-saves/{session_date}")
 def get_barchart_saves(session_date: str):
     """Función que crea el gráfico de barras de paradas de una sesión."""
     session_data = get_session_data(session_date)
@@ -323,7 +330,7 @@ def get_barchart_saves(session_date: str):
         
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/api/heatmap/{session_date}")
+@app.get("/heatmap/{session_date}")
 def get_heatmap(session_date: str):
     """Funcion que crea el heatmap de una sesion"""
     session_data = get_session_data(session_date)
@@ -381,7 +388,7 @@ def get_heatmap(session_date: str):
     
     return Response(buffer.getvalue(), media_type="image/png")    
 
-@app.get("/api/2D-scatterplot-positions/{session_date}")
+@app.get("/2D-scatterplot-positions/{session_date}")
 def get_scatterplot_positions(session_date: str):
     """Función que crea el gráfico 2D de dispersión de posiciones de cabeza y manos en una sesión."""
     session_tracking = get_session_tracking(session_date)
@@ -407,14 +414,14 @@ def get_scatterplot_positions(session_date: str):
    
     fig, ax = pyplot.subplots()
 
-    ax.scatter(head_pos_x, head_pos_y, label="Head", color='red', alpha=0.7)
+   # ax.scatter(head_pos_x, head_pos_y, label="Head", color='red', alpha=0.7)
     ax.scatter(handR_pos_x, handR_pos_y, label="Right Hand", color='blue', alpha=0.7)
     ax.scatter(handL_pos_x, handL_pos_y, label="Left Hand", color='green', alpha=0.7)
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
     ax.set_title('2D Head and Hands Position')
-    ax.legend()    
+    ax.legend()   
 
     buffer = BytesIO()
     fig.savefig(buffer, format='png', bbox_inches='tight')
@@ -423,7 +430,7 @@ def get_scatterplot_positions(session_date: str):
         
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/api/3D-scatterplot-positions/{session_date}")
+@app.get("/3D-scatterplot-positions/{session_date}")
 def get_3D_scatterplot_positions(session_date: str):
     """Función que crea el gráfico 3D de dispersión de posiciones de cabeza y manos en una sesión."""
     session_tracking = get_session_tracking(session_date)
@@ -456,13 +463,14 @@ def get_3D_scatterplot_positions(session_date: str):
     fig = pyplot.figure()
     ax = fig.add_subplot(111, projection='3d') 
 
-    ax.scatter(head_pos_x, head_pos_y, head_pos_z, label="Head", color='red', alpha=0.7)
+   # ax.scatter(head_pos_x, head_pos_y, head_pos_z, label="Head", color='red', alpha=0.7)
     ax.scatter(handR_pos_x, handR_pos_y, handR_pos_z, label="Right Hand", color='blue', alpha=0.7)
     ax.scatter(handL_pos_x, handL_pos_y, handL_pos_z, label="Left Hand", color='green', alpha=0.7)
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
     ax.set_zlabel('Depth')
+#    pyplot.tight_layout()
     ax.set_title('3D Head and Hands Position')
     ax.legend()    
 
@@ -473,7 +481,7 @@ def get_3D_scatterplot_positions(session_date: str):
         
     return Response(buffer.getvalue(), media_type="image/png")
     
-@app.get("/api/plot-times/{session_date}")
+@app.get("/plot-times/{session_date}")
 def get_plot_times(session_date: str):
     """Función que crea el gráfico de dispersión de la velocidad de reacción en cada lanzamiento."""
     session_data = get_session_data(session_date)
@@ -507,7 +515,7 @@ def get_plot_times(session_date: str):
         
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/api/saves-progress/{player_id}")
+@app.get("/saves-progress/{player_id}")
 def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de paradas de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
@@ -544,7 +552,7 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
 
-@app.get("/api/heatmap-progress/{player_id}")
+@app.get("/heatmap-progress/{player_id}")
 def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el heatmap de progreso de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
@@ -611,7 +619,7 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
 
-@app.get("/api/times-progress/{player_id}")
+@app.get("/times-progress/{player_id}")
 def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de tiempo de duración de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
@@ -647,7 +655,7 @@ def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
   
-@app.get("/api/lights-progress/{player_id}")
+@app.get("/lights-progress/{player_id}")
 def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de luces tocadas de varias sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
@@ -685,7 +693,7 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
   
-@app.get("/api/barchart-comparison/{session_date1}/{session_date2}")
+@app.get("/barchart-comparison/{session_date1}/{session_date2}")
 def get_barchart_comparison(session_date1: str, session_date2: str):
     """Función que crea el gráfico de barras comparativo de lanzamientos de dos sesiones."""
     sessionP1 = get_session_data(session_date1)
@@ -722,6 +730,17 @@ def shutdown():
     sys.exit(0)
 
 signal.signal(signal.SIGTERM, shutdown)
+
+@app.post("/upload_csv")
+async def upload_csv(file: UploadFile = File(...)):
+    if not file.filename.endswith(".csv"):
+       return {"error": "Invalid file type. Only CSV files are allowed."}
+
+    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    return
 
 if __name__ == "__main__":
     import uvicorn
