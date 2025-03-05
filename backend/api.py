@@ -732,15 +732,19 @@ def shutdown():
 signal.signal(signal.SIGTERM, shutdown)
 
 @app.post("/upload_csv")
-async def upload_csv(file: UploadFile = File(...)):
+async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
+    
     if not file.filename.endswith(".csv"):
        return {"error": "Invalid file type. Only CSV files are allowed."}
 
-    file_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    user_folder = os.path.join(UPLOAD_FOLDER, userId)
+    os.makedirs(user_folder, exist_ok=True)
+
+    file_path = os.path.join(user_folder, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return
+    return {"message": "File uploaded successfully"}
 
 if __name__ == "__main__":
     import uvicorn
