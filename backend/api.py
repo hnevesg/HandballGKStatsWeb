@@ -23,6 +23,7 @@ from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap
 
 from roles import Rol
+from send_to_db import load_csv_to_mysql
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -742,6 +743,9 @@ async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
     file_path = os.path.join(user_folder, file.filename)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    
+    #Sending csv to DB
+    load_csv_to_mysql(file_path)
 
     return {"message": "File uploaded successfully"}
 
