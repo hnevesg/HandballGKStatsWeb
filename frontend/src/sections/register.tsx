@@ -7,6 +7,7 @@ import SportsSoccerIcon from '@mui/icons-material/SportsSoccer';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLocation } from 'wouter';
 import { TextInput, Title } from '@mantine/core';
+import CryptoJS from 'crypto-js';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -30,7 +31,7 @@ const Register = () => {
     setPasswordError('');
 
     if (email === '') {
-      setEmailError('Please enter your email');
+      alert('Please enter your email');
       return;
     }
 
@@ -59,6 +60,9 @@ const Register = () => {
 
   const registerData = async () => {
     try {
+      const salt = CryptoJS.lib.WordArray.random(16).toString();
+      const hashedPassword = CryptoJS.SHA256(password + salt).toString();
+      
       const response = await fetch(`${baseURL}/register`, {
         method: 'POST',
         headers: {
@@ -67,7 +71,8 @@ const Register = () => {
         body: JSON.stringify({
           name,
           email,
-          password,
+          password: hashedPassword,
+          salt,
           team: parseInt(selectedTeam, 10),
           user_type: userType
         })
@@ -85,7 +90,7 @@ const Register = () => {
     catch (error) {
       console.error('Error:', error);
     }
-  }
+  };
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

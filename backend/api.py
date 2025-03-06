@@ -4,6 +4,8 @@ import signal
 import sys
 import numpy as np
 import logging
+import uvicorn
+import hashlib
 import matplotlib
 matplotlib.use("Agg")
 from io import BytesIO
@@ -47,6 +49,7 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String)
     password = Column(String)
+    salt = Column(String)
     name = Column(String)
     role = Column(String)
     teamID = Column(Integer)
@@ -112,6 +115,7 @@ class RegisterRequest(BaseModel):
     name: str
     email: str
     password: str
+    salt: str
     team: int
     user_type: str  # 'portero' o 'entrenador'
 
@@ -125,7 +129,7 @@ def register_user(request: RegisterRequest):
         raise HTTPException(status_code=400, detail=f"Email {request.email} already in use.")
     else:
         try: 
-            user = User(email=request.email, password=request.password, name=request.name, role=request.user_type, teamID=request.team)
+            user = User(email=request.email, password=request.password, salt=request.salt, name=request.name, role=request.user_type, teamID=request.team)
             session.add(user)
             session.commit()
             logging.info(f"User {request.name} registered successfully")
@@ -137,40 +141,35 @@ def register_user(request: RegisterRequest):
         finally:
             session.close()
             
+def authenticate_user(user: User, password: str, role: str):
+    hashed_password = hashlib.sha256((password + user.salt).encode('utf-8')).hexdigest()
+    if user.password == hashed_password and user.role == role:
+        return {"message": "Login successful"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
 @app.post("/login-staff")
-async def login(request: LoginRequest):
+async def login_staff(request: LoginRequest):
     """Función para iniciar sesión del cuerpo técnico."""
     session = SessionLocal()
     user = session.query(User).filter(User.email == request.email).first()
     session.close()
-    
     if user:
-        if user.password == request.password and user.role == Rol.ENTRENADOR.value:
-            return {"message": "Login successful"}
-        else:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+        return authenticate_user(user, request.password, Rol.ENTRENADOR.value)
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
-
 @app.post("/login-players")
-async def login(request: LoginRequest):
+async def login_players(request: LoginRequest):
     """Función para iniciar sesión de jugadores."""
-    logging.info(f"Received login request for email: {request.email}")
     session = SessionLocal()
     user = session.query(User).filter(User.email == request.email).first()
     session.close()
-    
     if user:
-        if user.password == request.password and user.role == Rol.PORTERO.value:
-            return {"message": "Login successful"}
-        else:
-            raise HTTPException(status_code=401, detail="Invalid email or password")
+        return authenticate_user(user, request.password, Rol.PORTERO.value)
     else:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    
-# ------------------- Players -------------------
+
 @app.get("/players/{team_id}")
 def get_players(team_id: int):
     """Función para obtener la lista de jugadores."""
@@ -747,6 +746,5 @@ async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
     return {"message": "File uploaded successfully"}
 
 if __name__ == "__main__":
-    import uvicorn
     Base.metadata.create_all(bind=engine)
     uvicorn.run(app, host="0.0.0.0", port=5000)
