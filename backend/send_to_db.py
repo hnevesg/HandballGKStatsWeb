@@ -16,16 +16,6 @@ session_header_to_column_mapping = {
     "MODE":  "game_mode",
 }
 
-session_ball_header_to_column_mapping = {
-    "Frame": "Frame",
-    "Tiempo": "Tiempo",
-    "ID": "ID",
-    "Estatus": "Estatus",
-    "Posicion_Bola_x": "Posicion_Bola_x",
-    "Posicion_Bola_y": "Posicion_Bola_y",
-    "Posicion_Bola_z": "Posicion_Bola_z"
-}
-
 session_data_header_to_column_mapping = {
     "DATE": "session_date",
     "TIME": "session_time",
@@ -73,7 +63,25 @@ session_tracking_header_to_column_mapping = {
     "session_date": "session_date"
 }
 
-def process_tracking_date(file_data, file_path):
+session_reaction_header_to_column_mapping = {
+    "Frame": "Frame",
+    "Tiempo": "Time",
+    "ID_Luz": "light_id",
+    "Estatus": "status",
+    "session_date": "session_date"
+}
+
+session_ball_header_to_column_mapping = {
+    "Frame": "Frame",
+    "Tiempo": "Tiempo",
+    "ID": "ID",
+    "Estatus": "Estatus",
+    "Posicion_Bola_x": "Posicion_Bola_x",
+    "Posicion_Bola_y": "Posicion_Bola_y",
+    "Posicion_Bola_z": "Posicion_Bola_z"
+}
+
+def process_date(file_data, file_path):
     match = re.search(r'(\d{8})_(\d{6})', file_path)
     if match:
         date_str = match.group(1)
@@ -111,20 +119,25 @@ def load_csv_to_mysql(file_path):
             
             file_data.to_sql(table_name, engine, if_exists='append', index=False)
             print(f"Data from {file_path} has been saved to {table_name} table.")
-
         #elif "BallTracking" in file_path:
             #file_data.rename(columns=session_ball_header_to_column_mapping, inplace=True)
             #file_data = file_data[list(session_ball_header_to_column_mapping.values())]
         elif "OculusTracking" in file_path:
             table_name = "sessions_tracking"
             file_data.rename(columns=session_tracking_header_to_column_mapping, inplace=True)
-            file_data = process_tracking_date(file_data, file_path)        
+            file_data = process_date(file_data, file_path)        
             file_data = file_data[list(session_tracking_header_to_column_mapping.values())]
 
             file_data.to_sql(table_name, engine, if_exists='append', index=False)
             print(f"Data from {file_path} has been saved to {table_name} table.")
+        elif "ReactionSpeed" in file_path:
+            table_name = "sessions_reaction"
+            file_data.rename(columns=session_reaction_header_to_column_mapping, inplace=True)
+            file_data = process_date(file_data, file_path)        
+            file_data = file_data[list(session_reaction_header_to_column_mapping.values())]
 
-#        elif "ReactionSpeed" in file_path:
+            file_data.to_sql(table_name, engine, if_exists='append', index=False)
+            print(f"Data from {file_path} has been saved to {table_name} table.")        
         
     except Exception as e:
         print(e)

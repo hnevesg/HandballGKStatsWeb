@@ -15,7 +15,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import create_engine, Column, String, Integer
+from sqlalchemy import create_engine, Column, String, Integer, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from matplotlib import pyplot
@@ -85,29 +85,38 @@ class SessionTracking(Base):
     id = Column(Integer, primary_key=True, index=True)
     session_date = Column(String)
     Frame = Column(Integer)
-    Time = Column(Integer)
-    HeadPosition_x = Column(Integer)
-    HeadPosition_y = Column(Integer)
-    HeadPosition_z = Column(Integer)
-    RHandPosition_x = Column(Integer)
-    RHandPosition_y = Column(Integer)
-    RHandPosition_z = Column(Integer)
-    RHandRotation_x = Column(Integer)
-    RHandRotation_y = Column(Integer)
-    RHandRotation_z = Column(Integer)
-    RHandVelocity_x = Column(Integer)
-    RHandVelocity_y = Column(Integer)
-    RHandVelocity_z = Column(Integer)
-    LHandPosition_x = Column(Integer)
-    LHandPosition_y = Column(Integer)
-    LHandPosition_z = Column(Integer)
-    LHandRotation_x = Column(Integer)
-    LHandRotation_y = Column(Integer)
-    LHandRotation_z = Column(Integer)
-    LHandVelocity_x = Column(Integer)
-    LHandVelocity_y = Column(Integer)
-    LHandVelocity_z = Column(Integer)
-        
+    Time = Column(Float)
+    HeadPosition_x = Column(Float)
+    HeadPosition_y = Column(Float)
+    HeadPosition_z = Column(Float)
+    RHandPosition_x = Column(Float)
+    RHandPosition_y = Column(Float)
+    RHandPosition_z = Column(Float)
+    RHandRotation_x = Column(Float)
+    RHandRotation_y = Column(Float)
+    RHandRotation_z = Column(Float)
+    RHandVelocity_x = Column(Float)
+    RHandVelocity_y = Column(Float)
+    RHandVelocity_z = Column(Float)
+    LHandPosition_x = Column(Float)
+    LHandPosition_y = Column(Float)
+    LHandPosition_z = Column(Float)
+    LHandRotation_x = Column(Float)
+    LHandRotation_y = Column(Float)
+    LHandRotation_z = Column(Float)
+    LHandVelocity_x = Column(Float)
+    LHandVelocity_y = Column(Float)
+    LHandVelocity_z = Column(Float)
+
+class SessionReaction(Base):
+    __tablename__ = "sessions_reaction"
+    id = Column(Integer, primary_key=True, index=True)
+    session_date = Column(String)
+    Frame = Column(Integer)
+    Time = Column(Float) 
+    light_id = Column(Integer)
+    status = Column(String)
+            
 class LoginRequest(BaseModel):
     email: str
     password: str
@@ -228,9 +237,17 @@ def get_session_data(session_date: str):
 def get_session_tracking(session_date: str):
     """Función para obtener el tracking de una sesión."""
     session = SessionLocal()
-    sessions = session.query(SessionTracking).filter(SessionTracking.session_date == session_date).all()
+    tracking_data = session.query(SessionTracking).filter(SessionTracking.session_date == session_date).all()
     session.close()
-    return sessions 
+    return tracking_data 
+
+@app.get("/sessionReaction/{session_date}")
+def get_session_reaction(session_date: str):
+    """Función para obtener los datos de reacción de una sesión."""
+    session = SessionLocal()
+    reactions = session.query(SessionReaction).filter(SessionReaction.session_date == session_date).all()
+    session.close()
+    return reactions
 
 # ------------------- Metrics Charts -------------------
 @app.get("/barchart-shoots/{session_date}")
@@ -675,7 +692,6 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
         
         ax.plot(session_dates, lights, label='Saves', color='blue', marker='o', linestyle='-')
         ax.set_ylim(0, max(lights)+1) 
-        ax.set_yticks(range(0, max(lights) + 1))  
         ax.set_ylabel('Nº of touched lights')
         ax.set_xlabel('Sessions Dates')
         ax.set_xticks(session_dates)
@@ -726,6 +742,45 @@ def get_barchart_comparison(session_date1: str, session_date2: str):
     
     return Response(buffer.getvalue(), media_type="image/png")
 
+@app.get("/reaction-speed/{session_date}")
+def get_reaction_speed(session_date: str):
+    """Función que crea el gráfico de líneas de velocidad de reacción de una sesión de luces."""
+    session_data = get_session_data(session_date)
+    session_reaction = get_session_reaction(session_date)
+    
+    if len(session_reaction) > 0:
+        lights = session_data.n_lights
+        encendido = []
+        tocado = []
+        for frame in session_reaction:
+            if frame.status == "tocado":
+                tocado.append(frame.Time)
+            if frame.status == "encendido":
+                encendido.append(frame.Time)
+        
+        reaction_speed = []
+        for i in range(lights): # la última no se cuenta, porque es la que se queda encendida
+            reaction_speed.append(tocado[i] - encendido[i])
+        
+        fig, ax = pyplot.subplots()
+        
+        ax.plot(range(1, lights+1), reaction_speed, label='Time between light was turned on and touched', color='blue', marker='o', linestyle='-')
+        ax.set_ylim(0, max(reaction_speed)+1)
+        ax.set_ylabel('Reaction Speed')
+    # ax.set_xticks(range(1, lights+1))
+        ax.xaxis.set_major_locator(MaxNLocator(integer=True))
+        ax.set_xlabel('Nº of touched lights')
+        ax.legend()
+        
+        fig.tight_layout()
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png', bbox_inches='tight')
+        pyplot.close(fig)
+        buffer.seek(0)
+            
+        return Response(buffer.getvalue(), media_type="image/png")
+
 def shutdown():
     sys.exit(0)
 
@@ -747,8 +802,10 @@ async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
     #Sending csv to DB
     load_csv_to_mysql(file_path)
 
-    return {"message": "File uploaded successfully"}
-
+    return JSONResponse(
+        content={"message": "File uploaded successfully"},
+        status_code=200  
+    )
 if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5000)    uvicorn.run(app, host="0.0.0.0", port=12345)

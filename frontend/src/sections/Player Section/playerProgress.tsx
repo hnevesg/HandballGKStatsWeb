@@ -67,6 +67,8 @@ const PlayerProgress = (): JSX.Element => {
         setHeatmapURL(null);
         setProgressTimesGraphURL(null);
         setProgressLightsGraphURL(null);
+      } finally {
+        setLoading(false);
       }
     } else {
 
@@ -77,8 +79,9 @@ const PlayerProgress = (): JSX.Element => {
       try {
         let savesResponse = await fetch(progressSavesGraphUrl);
         let heatmapResponse = await fetch(heatmapUrl);
+        let timesResponse = await fetch(progressTimesGraphUrl);
 
-        if (!savesResponse.ok || !heatmapResponse.ok) {
+        if (!savesResponse.ok || !heatmapResponse.ok || !timesResponse.ok) {
           setNoSessions(true);
           setProgressSavesGraphURL(null);
           setHeatmapURL(null);
@@ -174,8 +177,8 @@ const PlayerProgress = (): JSX.Element => {
                 <MenuItem value="Progressive">Progressive I</MenuItem>
                 <MenuItem value="Progressive2">Progressive II</MenuItem>
                 <MenuItem value="PerTime">PerTime</MenuItem>
-                <MenuItem value="LightsReaction">LightsReaction I</MenuItem>
-                <MenuItem value="LightsReaction2">LightsReaction II</MenuItem>
+                <MenuItem value="LightsReaction">Lights Reaction I</MenuItem>
+                <MenuItem value="LightsReaction2">Lights Reaction II</MenuItem>
               </Select>
             </FormControl>
           </Box>
@@ -206,49 +209,53 @@ const PlayerProgress = (): JSX.Element => {
           <Grid container spacing={4}>
             <Grid item xs={12} md={9}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                    <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                      <Typography variant="h6" gutterBottom>Metric 1</Typography>
-                      <Box sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center'
-                      }}>
-                        {progressSavesGraphURL ? (
-                          <img src={progressSavesGraphURL} alt="Progress Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                        ) : (
-                          <Typography variant="body2" color="textSecondary">
-                            Loading progress graph...
-                          </Typography>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Box>
-                  {(level !== "LightsReaction" && level !== "LightsReaction2" && level !== "PerTime") && (
-                    <>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                        <Paper sx={{ p: 2, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom>Metric 2</Typography>
+
+                {(level !== "LightsReaction" && level !== "LightsReaction2") && (
+                  <>
+                    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1}}>
+                        <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                          <Typography variant="h6" gutterBottom>Nº of saves per session</Typography>
                           <Box sx={{
                             width: '100%',
                             display: 'flex',
                             justifyContent: 'center',
                             alignItems: 'center'
                           }}>
-                            {progressTimesGraphURL ? (
-                              <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                            {progressSavesGraphURL ? (
+                              <img src={progressSavesGraphURL} alt="Progress Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                             ) : (
-                              <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
+                              <Typography variant="body2" color="textSecondary">
+                                Loading progress graph...
+                              </Typography>
                             )}
                           </Box>
                         </Paper>
                       </Box>
 
-                      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <Paper sx={{ p: 2, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom>Metric 3</Typography>
+                      {/* {(level !== "PerTime") && ( 
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                          <Paper sx={{ p: 2, width: '100%' }}>
+                            <Typography variant="h6" gutterBottom>Time per session</Typography>
+                            <Box sx={{
+                              width: '100%',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }}>
+                              {progressTimesGraphURL ? (
+                                <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              ) : (
+                                <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
+                              )}
+                            </Box>
+                          </Paper>
+                        </Box>
+                      )}*/}
+
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1}}>
+                        <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                          <Typography variant="h6" gutterBottom>Heatmap of total shots</Typography>
                           <Box sx={{
                             position: 'relative',
                             backgroundSize: 'contain',
@@ -268,41 +275,20 @@ const PlayerProgress = (): JSX.Element => {
                           </Box>
                         </Paper>
                       </Box>
-                    </>
-                  )}
-                  {(level === "PerTime") && (
-                    <>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                        <Paper sx={{ p: 2, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom>Metric 2</Typography>
-                          <Box sx={{
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                          }}>
-                            {progressTimesGraphURL ? (
-                              <img src={progressTimesGraphURL} alt="Sessions duration progression" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            ) : (
-                              <Typography variant="body2" color="textSecondary">Loading times progress...</Typography>
-                            )}
-                          </Box>
-                        </Paper>
-                      </Box>
-                    </>
-                  )}
-                </Box>
+                    </Box>
+                  </>
+                )}
               </Box>
             </Grid>
           </Grid>
         )}
 
-        {noSessions ? (level === "LightsReaction" || level === "LightsReaction2") && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+        {(level === "LightsReaction" || level === "LightsReaction2") && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, justifyContent: 'center', width: '100%' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '100%', justifyContent: 'center' }}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
                 <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                  <Typography variant="h6" gutterBottom>Metric 1</Typography>
+                  <Typography variant="h6" gutterBottom>Nº of lights touched per session</Typography>
                   <Box sx={{
                     width: '100%',
                     display: 'flex',
@@ -321,8 +307,7 @@ const PlayerProgress = (): JSX.Element => {
               </Box>
             </Box>
           </Box>
-
-        ) : null}
+        )}
       </Container>
     </Box >
   );

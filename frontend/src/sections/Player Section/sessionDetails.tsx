@@ -23,6 +23,7 @@ const SessionDetails = (): JSX.Element => {
     const [heatmapURL, setHeatmapURL] = useState<any>(null);
     const [scatterplot2DPositionsURL, set2DScatterplotPositionsURL] = useState<any>(null);
     const [scatterplot3DPositionsURL, set3DScatterplotPositionsURL] = useState<any>(null);
+    const [plotReactionTimesURL, setPlotReactionTimesURL] = useState<any>(null);
     const [LhandSpeed, setLhandSpeed] = useState<number>()
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
@@ -99,6 +100,9 @@ const SessionDetails = (): JSX.Element => {
 
         let scatterplot3DPositionsUrl = `${baseURL}/3D-scatterplot-positions/${session?.date}`;
         set3DScatterplotPositionsURL(scatterplot3DPositionsUrl);
+
+        let reactionplotUrl = `${baseURL}/reaction-speed/${session?.date}`;
+        setPlotReactionTimesURL(reactionplotUrl);
     }
 
     useEffect(() => {
@@ -113,21 +117,30 @@ const SessionDetails = (): JSX.Element => {
 
     useEffect(() => {
         if (sessionTracking.length > 0 && session && sessionData) {
+            /* let speedL = 0, speedR = 0;
+             sessionTracking.forEach(data => {
+                 speedL += Math.sqrt(
+                     Math.pow(data.LHandVelocity_x, 2) +
+                     Math.pow(data.LHandVelocity_y, 2) +
+                     Math.pow(data.LHandVelocity_z, 2)
+                 );
+                 speedR += Math.sqrt(
+                     Math.pow(data.RHandVelocity_x, 2) +
+                     Math.pow(data.RHandVelocity_y, 2) +
+                     Math.pow(data.RHandVelocity_z, 2)
+                 );
+             });*/
             let speedL = 0, speedR = 0;
             sessionTracking.forEach(data => {
-                speedL += Math.sqrt(
-                    Math.pow(data.LHandVelocity_x, 2) +
-                    Math.pow(data.LHandVelocity_y, 2) +
-                    Math.pow(data.LHandVelocity_z, 2)
-                );
-                speedR += Math.sqrt(
-                    Math.pow(data.RHandVelocity_x, 2) +
-                    Math.pow(data.RHandVelocity_y, 2) +
-                    Math.pow(data.RHandVelocity_z, 2)
-                );
+                speedL += Math.sqrt(data.LHandVelocity_x ** 2 + data.LHandVelocity_y ** 2 + data.LHandVelocity_z ** 2);
+                speedR += Math.sqrt(data.RHandVelocity_x ** 2 + data.RHandVelocity_y ** 2 + data.RHandVelocity_z ** 2);
             });
-            setLhandSpeed(speedL / Number(sessionData.session_time));
-            setRhandSpeed(speedR / Number(sessionData.session_time));
+            const numFrames = sessionTracking.length;
+            const avgSpeedL = numFrames > 0 && sessionData?.session_time ? speedL / numFrames : 0;
+            const avgSpeedR = numFrames > 0 && sessionData?.session_time ? speedL / numFrames : 0;
+
+            setLhandSpeed(avgSpeedL);
+            setRhandSpeed(avgSpeedR);
         }
     }, [sessionTracking, session]);
 
@@ -197,34 +210,44 @@ const SessionDetails = (): JSX.Element => {
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                             <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
-                                            <TableContainer component={Paper} sx={{ border: '1px solid black'}}>
+                                            <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
                                                 <Table>
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>Metric</TableCell>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black'}}>Data</TableCell>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>Data</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Session Duration</b></TableCell>
-                                                            <TableCell align="center">{sessionData?.session_time}s</TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
+                                                            <TableCell align="center">{parseInt(sessionData?.session_time || '0')}s</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Nº of Lights</b></TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Nº of Lights</b></TableCell>
                                                             <TableCell align="center">{sessionData?.n_lights}</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Left Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}s</TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}m/s</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Right Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}s</TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}m/s</TableCell>
                                                         </TableRow>
                                                     </TableBody>
                                                 </Table>
                                             </TableContainer>
+                                        </Paper>
+                                    </Box>
+                                    {/* Metric - Lines Plot */}
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                            {plotReactionTimesURL ? (
+                                                <img id={`reaction-speed-${session?.id}`} src={plotReactionTimesURL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                            )}
                                         </Paper>
                                     </Box>
                                 </>
@@ -293,30 +316,30 @@ const SessionDetails = (): JSX.Element => {
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                             <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
-                                            <TableContainer component={Paper} sx={{ border: '1px solid black'}}>
+                                            <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
                                                 <Table>
                                                     <TableHead>
                                                         <TableRow>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>Metric</TableCell>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black'}}>Data</TableCell>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
+                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>Data</TableCell>
                                                         </TableRow>
                                                     </TableHead>
                                                     <TableBody>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Session Duration</b></TableCell>
-                                                            <TableCell align="center">{sessionData?.session_time}s</TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
+                                                            <TableCell align="center">{parseInt(sessionData?.session_time ||'0')}s</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Saves Percentage</b></TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Saves Percentage</b></TableCell>
                                                             <TableCell align="center">{savesPercentage}%</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Left Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}s</TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}m/s</TableCell>
                                                         </TableRow>
                                                         <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Right Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}s</TableCell>
+                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
+                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}m/s</TableCell>
                                                         </TableRow>
                                                     </TableBody>
                                                 </Table>
@@ -348,7 +371,7 @@ const SessionDetails = (): JSX.Element => {
                         </Box>
                     </Grid>
                 </Grid>
-            </Container>
+            </Container >
         </Box >
     );
 };

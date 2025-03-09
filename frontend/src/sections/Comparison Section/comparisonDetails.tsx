@@ -20,6 +20,8 @@ const ComparisonDetails = (): JSX.Element => {
   const [barchartURL, setBarchartURL] = useState<any>(null);
   const [heatmapP1URL, setHeatmapP1URL] = useState<any>(null);
   const [heatmapP2URL, setHeatmapP2URL] = useState<any>(null);
+  const [plotReactionTimesP1URL, setPlotReactionTimesP1URL] = useState<any>(null);
+  const [plotReactionTimesP2URL, setPlotReactionTimesP2URL] = useState<any>(null);
   const [sessionTrackingP1, setSessionTrackingP1] = useState<SessionTracking[]>([]);
   const [sessionTrackingP2, setSessionTrackingP2] = useState<SessionTracking[]>([]);
   const [LhandSpeedP1, setLhandSpeedP1] = useState<number>()
@@ -107,14 +109,22 @@ const ComparisonDetails = (): JSX.Element => {
   }
 
   const getPlots = () => {
-    let barchartShootsUrl = `${baseURL}/barchart-comparison/${session1?.date}/${session2?.date}`;
-    setBarchartURL(barchartShootsUrl);
+    if (session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") {
+      let plotReactionTimesP1Url = `${baseURL}/reaction-speed/${session1?.date}`;
+      setPlotReactionTimesP1URL(plotReactionTimesP1Url);
 
-    let heatmapP1Url = `${baseURL}/heatmap/${session1?.date}`;
-    setHeatmapP1URL(heatmapP1Url);
+      let plotReactionTimesP2Url = `${baseURL}/reaction-speed/${session2?.date}`;
+      setPlotReactionTimesP2URL(plotReactionTimesP2Url);
+    } else {
+      let barchartShootsUrl = `${baseURL}/barchart-comparison/${session1?.date}/${session2?.date}`;
+      setBarchartURL(barchartShootsUrl);
 
-    let heatmapP2Url = `${baseURL}/heatmap/${session2?.date}`;
-    setHeatmapP2URL(heatmapP2Url);
+      let heatmapP1Url = `${baseURL}/heatmap/${session1?.date}`;
+      setHeatmapP1URL(heatmapP1Url);
+
+      let heatmapP2Url = `${baseURL}/heatmap/${session2?.date}`;
+      setHeatmapP2URL(heatmapP2Url);
+    }
   }
 
   useEffect(() => {
@@ -129,20 +139,28 @@ const ComparisonDetails = (): JSX.Element => {
     if (sessionTrackingP1.length > 0 && session1) {
       let speedL = 0, speedR = 0;
       sessionTrackingP1.forEach(data => {
-        speedL += Math.sqrt(data.LHandVelocity_x + data.LHandVelocity_y + data.LHandVelocity_z);
-        speedR += Math.sqrt(data.RHandVelocity_x + data.RHandVelocity_y + data.RHandVelocity_z);
+        speedL += Math.sqrt(data.LHandVelocity_x ** 2 + data.LHandVelocity_y ** 2 + data.LHandVelocity_z ** 2);
+        speedR += Math.sqrt(data.RHandVelocity_x ** 2 + data.RHandVelocity_y ** 2 + data.RHandVelocity_z ** 2);
       });
-      setLhandSpeedP1(speedL);
-      setRhandSpeedP1(speedR);
+      const numFrames = sessionTrackingP1.length;
+      const avgSpeedL = numFrames > 0 && sessionDataP1?.session_time ? speedL / numFrames : 0;
+      const avgSpeedR = numFrames > 0 && sessionDataP1?.session_time ? speedL / numFrames : 0;
+
+      setLhandSpeedP1(avgSpeedL);
+      setRhandSpeedP1(avgSpeedR);
     }
     if (sessionTrackingP2.length > 0 && session2) {
       let speedL = 0, speedR = 0;
       sessionTrackingP2.forEach(data => {
-        speedL += Math.sqrt(data.LHandVelocity_x + data.LHandVelocity_y + data.LHandVelocity_z);
-        speedR += Math.sqrt(data.RHandVelocity_x + data.RHandVelocity_y + data.RHandVelocity_z);
+        speedL += Math.sqrt(data.LHandVelocity_x ** 2 + data.LHandVelocity_y ** 2 + data.LHandVelocity_z ** 2);
+        speedR += Math.sqrt(data.RHandVelocity_x ** 2 + data.RHandVelocity_y ** 2 + data.RHandVelocity_z ** 2);
       });
-      setLhandSpeedP2(speedL);
-      setRhandSpeedP2(speedR);
+      const numFrames = sessionTrackingP2.length;
+      const avgSpeedL = numFrames > 0 ? speedL / numFrames : 0;
+      const avgSpeedR = numFrames > 0 ? speedR / numFrames : 0;
+
+      setLhandSpeedP2(avgSpeedL);
+      setRhandSpeedP2(avgSpeedR);
     }
   }, [sessionTrackingP1, sessionTrackingP2, session1, session2]);
 
@@ -231,39 +249,39 @@ const ComparisonDetails = (): JSX.Element => {
             {/* Métrica 2 */}
             <Paper sx={{ flex: 1, p: 3 }}>
               <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
-              <TableContainer component={Paper} sx={{ border: '1px solid black'}}>
+              <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>Metric</TableCell>
-                      <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black'}}>{player1?.name}</TableCell>
-                      <TableCell align="center" sx={{ borderBottom: '1px solid black'}}>{player2?.name}</TableCell>
+                      <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
+                      <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>{player1?.name}</TableCell>
+                      <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>{player2?.name}</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     <TableRow>
-                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Session Duration</b></TableCell>
-                      <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{sessionDataP1?.session_time}s</TableCell>
-                      <TableCell align="center">{sessionDataP2?.session_time}s</TableCell>
+                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{parseInt(sessionDataP1?.session_time || '0')}s</TableCell>
+                      <TableCell align="center">{parseInt(sessionDataP2?.session_time ||'0')}s</TableCell>
                     </TableRow>
                     {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
                       <>
                         <TableRow>
-                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Nº of lights</b></TableCell>
-                          <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{sessionDataP1?.n_lights}</TableCell>
+                          <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Nº of lights</b></TableCell>
+                          <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{sessionDataP1?.n_lights}</TableCell>
                           <TableCell align="center">{sessionDataP2?.n_lights}</TableCell>
                         </TableRow>
                       </>
                     )}
                     <TableRow>
-                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Left Hand Speed</b></TableCell>
-                      <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{LhandSpeedP1?.toFixed(3)}s</TableCell>
-                      <TableCell align="center">{LhandSpeedP2?.toFixed(3)}s</TableCell>
+                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{LhandSpeedP1?.toFixed(3)}m/s</TableCell>
+                      <TableCell align="center">{LhandSpeedP2?.toFixed(3)}m/s</TableCell>
                     </TableRow>
                     <TableRow>
-                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black'}}><b>Right Hand Speed</b></TableCell>
-                      <TableCell align="center" sx={{ borderRight: '1px solid black'}}>{RhandSpeedP1?.toFixed(3)}s</TableCell>
-                      <TableCell align="center">{RhandSpeedP2?.toFixed(3)}s</TableCell>
+                      <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
+                      <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{RhandSpeedP1?.toFixed(3)}m/s</TableCell>
+                      <TableCell align="center">{RhandSpeedP2?.toFixed(3)}m/s</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -317,6 +335,33 @@ const ComparisonDetails = (): JSX.Element => {
               </Box>
             </>
           )}
+
+          {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
+            <>
+              {/* Metric - Lines Plot */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                    {plotReactionTimesP1URL ? (
+                      <img id={`reaction-speed-${session1?.id}`} src={plotReactionTimesP1URL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                    )}
+                  </Paper>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                    {plotReactionTimesP2URL ? (
+                      <img id={`reaction-speed-${session2?.id}`} src={plotReactionTimesP2URL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    ) : (
+                      <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                    )}
+                  </Paper>
+                </Box>
+              </Box>
+            </>
+          )}
+
 
         </Box>
       </Container >
