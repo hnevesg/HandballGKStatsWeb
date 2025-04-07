@@ -183,7 +183,7 @@ const SessionDetails = (): JSX.Element => {
                                 {session ? (
                                     <>
                                         <Typography variant="subtitle2" gutterBottom>Session Date: {formatDate(session.date)}</Typography>
-                                        {(session?.prestige_level !== "LightsReaction" && session?.prestige_level !== "LightsReaction") && (
+                                        {(session?.prestige_level !== "LightsReaction" && session?.prestige_level !== "LightsReaction2") && (
                                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                                 <Typography variant="subtitle2" sx={{ wordBreak: 'break-word' }}>• From: {(getUniqueInitialZones() as string).replace(/,/g, ', ')}</Typography>
                                             </Box>

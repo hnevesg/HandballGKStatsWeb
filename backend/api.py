@@ -9,7 +9,7 @@ import hashlib
 import matplotlib
 matplotlib.use("Agg")
 from io import BytesIO
-from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File
+from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -24,11 +24,14 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from roles import Rol
 from send_to_db import load_csv_to_mysql
+from SignalingServer import SignalingServer
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 DATABASE_URL = "mysql+pymysql://root:helena@192.168.43.173/gk_stats_web"  
+
+signaling_srv = SignalingServer()
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -781,11 +784,7 @@ def get_reaction_speed(session_date: str):
             
         return Response(buffer.getvalue(), media_type="image/png")
 
-def shutdown():
-    sys.exit(0)
-
-signal.signal(signal.SIGTERM, shutdown)
-
+# ------------------- DB management -------------------
 @app.post("/upload_csv")
 async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
     
@@ -800,12 +799,41 @@ async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
         shutil.copyfileobj(file.file, buffer)
     
     #Sending csv to DB
-    load_csv_to_mysql(file_path)
+    response = load_csv_to_mysql(file_path)
 
-    return JSONResponse(
-        content={"message": "File uploaded successfully"},
-        status_code=200  
-    )
+    if response == 200:
+        return JSONResponse(
+            content={"message": "File uploaded successfully"},
+            status_code=200  
+        )
+    else:
+        return JSONResponse(
+            content={"message": "Error while uploading file"},
+            status_code=500
+        )
+        
+# ------------------- WebRTC signaling server -------------------
+@app.websocket("/webrtc-signaling")
+async def websocket_endpoint(websocket: WebSocket):
+    await signaling_srv.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if "target" in data and data["target"]:
+                # Direct message to specific client
+                await signaling_srv.send_personal_message(data, websocket)
+            else:
+                # Broadcast to all other clients
+                await signaling_srv.broadcast(data, websocket)
+    except WebSocketDisconnect:
+        signaling_srv.disconnect(websocket)
+
+
+def shutdown():
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, shutdown)
+
 if __name__ == "__main__":
-    Base.metadata.create_all(bind=engine)
-    uvicorn.run(app, host="0.0.0.0", port=5000)    uvicorn.run(app, host="0.0.0.0", port=12345)
+   # Base.metadata.create_all(bind=engine)
+    uvicorn.run(app, host="192.168.43.173", port=12345)
