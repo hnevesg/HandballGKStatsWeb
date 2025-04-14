@@ -14,6 +14,7 @@ import SessionDetails from './sections/Player Section/sessionDetails';
 import PlayerProgress from './sections/Player Section/playerProgress';
 import PlayersSessions from './sections/Comparison Section/playersSessions';
 import ComparisonDetails from './sections/Comparison Section/comparisonDetails';
+import ResetPassword from './sections/ResetPassword';
 
 function App() {
   return (
@@ -25,6 +26,8 @@ function App() {
         <Route path="/register" component={Register} />
         <Route path="/loginplayers" component={LoginPlayers} />
         <Route path="/loginstaff" component={LoginStaff} />
+        <Route path="/forgot-password" component={ResetPassword} />
+
 
         <Route path="/home" component={HomePage} />
 

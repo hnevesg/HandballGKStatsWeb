@@ -29,7 +29,7 @@ from SignalingServer import SignalingServer
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-DATABASE_URL = "mysql+pymysql://root:helena@192.168.43.173/gk_stats_web"  
+DATABASE_URL = "mysql+pymysql://root:helena@192.168.18.13/gk_stats_web"  
 
 signaling_srv = SignalingServer()
 
@@ -193,12 +193,35 @@ def get_players(team_id: int):
 
 @app.get("/user/{email}")
 def get_user(email: str):
-    """Función para obtener un jugador por email."""
+    """Función para obtener un usuario por su email."""
     session = SessionLocal()
     player = session.query(User).filter(User.email == email).first()
     session.close()
+    if not player:
+        raise HTTPException(status_code=404, detail="User not found")
     return player
 
+@app.post("/reset-password/{email}")
+def reset_password(email: str, new_password: str, salt: str):
+    """Función para restablecer la contraseña de un usuario."""
+    session = SessionLocal()
+    user = session.query(User).filter(User.email == email).first()
+    if not user:
+        session.close()
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    try:
+        user.password = new_password
+        user.salt = salt
+        session.commit()
+        logging.info(f"Password for {email} reset successfully")
+        return {"message": "Password reset successfully"}
+    except Exception as e:
+        logging.error(f"Error resetting password: {e}")
+        session.rollback()
+        raise HTTPException(status_code=500, detail="Error while resetting password")
+    finally:
+        session.close()
 # ------------------- Sessions -------------------
 @app.get("/sessions/{player_id}")
 def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(None), begin_date: str = Query(None), end_date: str = Query(None)):
@@ -836,4 +859,4 @@ signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == "__main__":
    # Base.metadata.create_all(bind=engine)
-    uvicorn.run(app, host="192.168.43.173", port=12345)
+    uvicorn.run(app, host="192.168.18.13", port=12345)

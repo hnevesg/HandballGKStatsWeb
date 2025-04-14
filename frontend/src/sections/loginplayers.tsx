@@ -1,9 +1,10 @@
 import { JSX, useEffect, useState } from 'react';
-import { Button, Box, Avatar, Typography, Container, Paper, IconButton } from '@mui/material';
+import { Button, Box, Avatar, Typography, Container, Paper, IconButton, Link } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
 import { useLocation } from 'wouter';
 import { TextInput } from '@mantine/core';
+import { baseURL } from '../components/utils';
 
 const LoginPlayers = (): JSX.Element => {
   const [email, setEmail] = useState('');
@@ -12,7 +13,6 @@ const LoginPlayers = (): JSX.Element => {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
   const [, setLocation] = useLocation();
-  const baseURL = 'http://192.168.43.173:12345';
 
   const handleLogin = async () => {
     setEmailError('');
@@ -136,6 +136,12 @@ const LoginPlayers = (): JSX.Element => {
             placeholder="Your password"
             mb="md"
           />
+
+          <Typography variant="body2" sx={{ mt: 2 }}>
+            <Link component="button" onClick={() => setLocation('/forgot-password')}>
+              Forgot your password?
+            </Link>
+          </Typography>
 
           <Button
             fullWidth

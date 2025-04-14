@@ -15,13 +15,8 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import { User } from '../../types/user';
 import { Rol } from '../../types/rol';
-import { Center } from '@mantine/core';
+import { baseURL } from '../../components/utils';
 
-/*interface Player {
-  id: number;
-  name: string;
-  avatar: string;
-}*/
 
 const PlayersComparison = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -32,7 +27,6 @@ const PlayersComparison = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
-  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     getUser();

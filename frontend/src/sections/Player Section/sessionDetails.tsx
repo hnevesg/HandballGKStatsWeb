@@ -11,6 +11,7 @@ import { SessionData } from '../../types/sessionData';
 import { SessionTracking } from '../../types/sessionTracking';
 import Navbar from '../../components/navBar';
 import { formatDate } from '../../components/utils';
+import { baseURL } from '../../components/utils';
 
 const SessionDetails = (): JSX.Element => {
     const [, navigate] = useLocation();
@@ -28,7 +29,6 @@ const SessionDetails = (): JSX.Element => {
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
-    const baseURL = 'http://192.168.43.173:12345';
 
     const getSessionData = async () => {
         if (!session) return;

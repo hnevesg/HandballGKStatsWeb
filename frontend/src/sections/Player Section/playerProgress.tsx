@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import Navbar from '../../components/navBar';
 import { User } from '../../types/user';
+import { baseURL } from '../../components/utils';
 
 const PlayerProgress = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -24,7 +25,6 @@ const PlayerProgress = (): JSX.Element => {
   const [noSessions, setNoSessions] = useState(false);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     const state = window.history.state;

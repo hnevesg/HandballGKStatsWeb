@@ -8,6 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLocation } from 'wouter';
 import { TextInput, Title } from '@mantine/core';
 import CryptoJS from 'crypto-js';
+import { baseURL } from '../components/utils';
 
 const Register = () => {
   const [name, setName] = useState('');
@@ -18,7 +19,6 @@ const Register = () => {
   const [, setLocation] = useLocation();
   const [userType, setUserType] = useState('');
   const [selectedTeam, setSelectedTeam] = useState('1');
-  const baseURL = 'http://192.168.43.173:12345';
 
   const teams = [
     { label: 'BM Pozuelo Cva', id: 1 },
@@ -40,7 +40,7 @@ const Register = () => {
       return;
     }
 
-    if (password.length < 7) {
+    if (password.length < 8) {
       alert('Password must be 8 characters or longer');
       return;
     }

@@ -10,6 +10,7 @@ import { User } from '../../types/user';
 import { Session } from '../../types/session';
 import { SessionTracking } from '../../types/sessionTracking';
 import { SessionData } from '../../types/sessionData';
+import { baseURL } from '../../components/utils';
 
 const ComparisonDetails = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -31,7 +32,6 @@ const ComparisonDetails = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [sessionDataP1, setSessionDataP1] = useState<SessionData | null>();
   const [sessionDataP2, setSessionDataP2] = useState<SessionData | null>();
-  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     const state = window.history.state;

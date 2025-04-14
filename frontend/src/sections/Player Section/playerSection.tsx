@@ -7,6 +7,7 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import Navbar from '../../components/navBar';
 import { Rol } from '../../types/rol';
+import { baseURL } from '../../components/utils';
 
 const PlayerSection = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -16,7 +17,6 @@ const PlayerSection = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
-  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     getUser();

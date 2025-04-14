@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import Navbar from '../../components/navBar';
 import { formatDate } from '../../components/utils';
+import { baseURL } from '../../components/utils';
 
 const PlayerSessions = (): JSX.Element => {
     const [player, setPlayer] = useState<User>();
@@ -17,7 +18,6 @@ const PlayerSessions = (): JSX.Element => {
     const [sessions, setSessions] = useState<Session[]>([]);
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
     const [level, setLevel] = useState('Beginner');
-    const baseURL = 'http://192.168.43.173:12345';
 
     const getSessions = async () => {
         if (!player) return;

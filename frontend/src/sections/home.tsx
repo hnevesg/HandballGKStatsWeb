@@ -9,13 +9,13 @@ import { Session } from '../types/session';
 import { useEffect, useState } from 'react';
 import { Rol } from '../types/rol';
 import { formatDate } from '../components/utils';
+import { baseURL } from '../components/utils';
 
 const Home = (): JSX.Element => {
   const [, navigate] = useLocation();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
-  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     getUser();

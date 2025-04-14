@@ -6,6 +6,7 @@ import { User } from '../../types/user';
 import Navbar from '../../components/navBar';
 import { Session } from '../../types/session';
 import { PlayerTable } from '../../components/utils';
+import { baseURL } from '../../components/utils';
 
 const PlayersSessions = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -18,7 +19,6 @@ const PlayersSessions = (): JSX.Element => {
   const [player1Sessions, setPlayer1Sessions] = useState<Session[]>([]);
   const [player2Sessions, setPlayer2Sessions] = useState<Session[]>([]);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
-  const baseURL = 'http://192.168.43.173:12345';
 
   const getSessionsP1 = async () => {
     if (!player1) return;

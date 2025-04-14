@@ -8,14 +8,14 @@ import {
 } from '@mui/material';
 import Navbar from '../components/navBar';
 import { User } from '../types/user';
+import { baseURL } from '../components/utils';
 
 const Streaming: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const signalingServerUrl = 'ws://192.168.43.173:12345/webrtc-signaling';
+    const signalingServerUrl = 'ws://192.168.18.13:12345/webrtc-signaling';
     let ws: WebSocket;
 
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
-    const baseURL = 'http://192.168.43.173:12345';
 
     const [bitrate, setBitrate] = useState<string>('');
     const [resolution, setResolution] = useState<string>('');
@@ -98,6 +98,8 @@ const Streaming: React.FC = () => {
             logStats(peerConnection);
         };
 
+        peerConnection.addTransceiver("video", { direction: "recvonly" });
+
         ws.onmessage = async (message) => {
             const data = JSON.parse(message.data);
 
@@ -109,7 +111,22 @@ const Streaming: React.FC = () => {
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
 
-                ws.send(JSON.stringify({ type: "answer", sdp: answer.sdp }));
+                peerConnection.onicegatheringstatechange = async () => {
+                    if (peerConnection.iceGatheringState === "complete") {
+                        console.log("RECEIVER - ICE gathering complete");
+                        const localDescription = peerConnection.localDescription;
+                        if (localDescription) {
+                            ws.send(JSON.stringify({
+                                type: "answer",
+                                sdp: localDescription.sdp,
+                            }));
+                            console.log("RECEIVER - Answer and ICE candidates sent together");
+                        }
+                    }
+                };
+
+                //  ws.send(JSON.stringify({ type: "answer", sdp: answer.sdp }));
+                //                console.log("RECEIVER - Answer sent");
             } else if (data.type === "candidate" && data.candidate) {
                 console.log("RECEIVER - Received ICE candidate");
                 const candidate = new RTCIceCandidate(data.candidate);
@@ -117,17 +134,20 @@ const Streaming: React.FC = () => {
             }
         };
 
-        peerConnection.onicecandidate = (event) => {
+       /* peerConnection.onicecandidate = (event) => {
             if (event.candidate) {
                 console.log("RECEIVER - Sending ICE candidate");
-                ws.send(JSON.stringify({ type: "candidate", candidate: event.candidate }));
+                ws.send(JSON.stringify({
+                    type: "candidate",
+                    candidate: event.candidate.candidate,
+                    sdpMid: event.candidate.sdpMid,
+                    sdpMLineIndex: event.candidate.sdpMLineIndex
+                }));
             }
-        };
+        };*/
 
         peerConnection.ontrack = (event) => {
             console.log("RECEIVER - Received remote stream track");
-            console.log("videoRef.current exists:", !!videoRef.current);
-            console.log("event.streams length:", event.streams.length);
 
             let streamToUse;
 
@@ -145,6 +165,13 @@ const Streaming: React.FC = () => {
                 videoRef.current.play()
                     .catch(error => console.error("Error playing video:", error));
             }
+
+            //if (videoRef.current && event.streams.length > 0) {
+            //console.log("RECEIVER - INSIDE IF");
+            //                videoRef.current.srcObject = event.streams[0];
+            //  videoRef.current.srcObject = videoRef.current.srcObject;
+            //                videoRef.current.muted = true; // Before calling play()
+
         };
 
         return () => {
@@ -234,4 +261,4 @@ const Streaming: React.FC = () => {
         </Box>
     );
 };
-export default Streaming; //WebRTCReceiver;
+export default Streaming;

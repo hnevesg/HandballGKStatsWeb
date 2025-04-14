@@ -7,10 +7,10 @@ import {
 import { useEffect, useState } from 'react';
 import Navbar from '../components/navBar';
 import { User } from '../types/user';
+import { baseURL } from '../components/utils';
 
 const About = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
-  const baseURL = 'http://192.168.43.173:12345';
 
   useEffect(() => {
     getUser();
