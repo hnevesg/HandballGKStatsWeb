@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useRef } from "react";
-//import { RTCPeerConnection, RTCSessionDescription, RTCIceCandidate } from "wrtc";
 import {
     Box,
     Container,
@@ -8,11 +7,10 @@ import {
 } from '@mui/material';
 import Navbar from '../components/navBar';
 import { User } from '../types/user';
-import { baseURL } from '../components/utils';
+import { baseURL, streamingURL } from '../components/utils';
 
 const Streaming: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement>(null);
-    const signalingServerUrl = 'ws://192.168.18.13:12345/webrtc-signaling';
     let ws: WebSocket;
 
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
@@ -45,6 +43,7 @@ const Streaming: React.FC = () => {
             const stats = await peerConnection.getStats();
             stats.forEach(report => {
                 if (report.type === "inbound-rtp" && report.kind === "video") {
+                    console.log("Inbound video report:", report);
 
                     if ("bytesReceived" in report && "timestamp" in report) {
                         if (prevTimestamp) {
@@ -92,7 +91,7 @@ const Streaming: React.FC = () => {
     useEffect(() => {
         const peerConnection = new RTCPeerConnection();
 
-        ws = new WebSocket(signalingServerUrl);
+        ws = new WebSocket(streamingURL);
         ws.onopen = () => {
             console.log('WebSocket connection established');
             logStats(peerConnection);
@@ -106,8 +105,8 @@ const Streaming: React.FC = () => {
             if (data.type === "offer") {
                 console.log("RECEIVER - Received offer:" + data.sdp);
                 const offer = new RTCSessionDescription({ sdp: data.sdp, type: "offer" });
+              
                 await peerConnection.setRemoteDescription(offer);
-
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
 
@@ -116,35 +115,20 @@ const Streaming: React.FC = () => {
                         console.log("RECEIVER - ICE gathering complete");
                         const localDescription = peerConnection.localDescription;
                         if (localDescription) {
-                            ws.send(JSON.stringify({
-                                type: "answer",
-                                sdp: localDescription.sdp,
-                            }));
+                            const msg = JSON.stringify({ type: "answer", sdp: localDescription.sdp });
+                            console.log("Sending message over WebSocket, size:", msg.length);
+                            ws.send(msg);
+                            console.log("Full Answer SDP:\n" + msg);
                             console.log("RECEIVER - Answer and ICE candidates sent together");
                         }
                     }
                 };
-
-                //  ws.send(JSON.stringify({ type: "answer", sdp: answer.sdp }));
-                //                console.log("RECEIVER - Answer sent");
             } else if (data.type === "candidate" && data.candidate) {
                 console.log("RECEIVER - Received ICE candidate");
                 const candidate = new RTCIceCandidate(data.candidate);
                 await peerConnection.addIceCandidate(candidate);
             }
         };
-
-       /* peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                console.log("RECEIVER - Sending ICE candidate");
-                ws.send(JSON.stringify({
-                    type: "candidate",
-                    candidate: event.candidate.candidate,
-                    sdpMid: event.candidate.sdpMid,
-                    sdpMLineIndex: event.candidate.sdpMLineIndex
-                }));
-            }
-        };*/
 
         peerConnection.ontrack = (event) => {
             console.log("RECEIVER - Received remote stream track");
@@ -154,24 +138,30 @@ const Streaming: React.FC = () => {
             if (event.streams.length === 0) {
                 // new MediaStream with the received track
                 streamToUse = new MediaStream([event.track]);
-                console.log("Created new MediaStream with track");
+                console.log("Created new MediaStream with received video track");
             } else {
                 streamToUse = event.streams[0];
                 console.log("Using existing stream");
             }
-            if (videoRef.current) {
-                videoRef.current.srcObject = streamToUse;
-                videoRef.current.muted = true;
-                videoRef.current.play()
-                    .catch(error => console.error("Error playing video:", error));
+
+            const video = videoRef.current;
+            if (!video) {
+                return;
             }
+            video.srcObject = streamToUse;
+            video.muted = true;
+            video.autoplay = true;
+            video.playsInline = true;
+            
+            video.onloadedmetadata = () => {
+                console.log("!!! loadedmetadata fired"); // cuando se muestra este log, empieza la retransmisión
 
-            //if (videoRef.current && event.streams.length > 0) {
-            //console.log("RECEIVER - INSIDE IF");
-            //                videoRef.current.srcObject = event.streams[0];
-            //  videoRef.current.srcObject = videoRef.current.srcObject;
-            //                videoRef.current.muted = true; // Before calling play()
-
+                video.play().then(() => {
+                    console.log("Video is playing");
+                }).catch((err) => {
+                    console.error("Video play error:", err);
+                });
+            };
         };
 
         return () => {

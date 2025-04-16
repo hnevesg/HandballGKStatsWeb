@@ -35,7 +35,6 @@ const SessionDetails = (): JSX.Element => {
         try {
             const response = await fetch(`${baseURL}/sessionData/${session.date}`);
             if (response.ok) {
-                console.log("Session Data ANSWER")
                 const data = await response.json();
                 setSessionData(data);
             } else {
@@ -51,7 +50,6 @@ const SessionDetails = (): JSX.Element => {
         try {
             const response = await fetch(`${baseURL}/sessionTracking/${session.date}`);
             if (response.ok) {
-                console.log("Session Tracking ANSWER")
                 const data = await response.json();
                 setSessionTracking(data);
             } else {

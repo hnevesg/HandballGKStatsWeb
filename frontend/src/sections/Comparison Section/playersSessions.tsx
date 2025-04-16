@@ -23,8 +23,6 @@ const PlayersSessions = (): JSX.Element => {
   const getSessionsP1 = async () => {
     if (!player1) return;
     try {
-      console.log("GetSessionsP1")
-      console.log(player1)
       const response = await fetch(`${baseURL}/sessions/${player1.id}?mode=${mode}&level=${level}`, {
         method: 'GET',
         headers: {
@@ -45,8 +43,6 @@ const PlayersSessions = (): JSX.Element => {
   const getSessionsP2 = async () => {
     if (!player2) return;
     try {
-      console.log("GetSessionsP2")
-      console.log(player2)
       const response = await fetch(`${baseURL}/sessions/${player2.id}?mode=${mode}&level=${level}`, {
         method: 'GET',
         headers: {

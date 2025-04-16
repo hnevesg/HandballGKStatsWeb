@@ -1,8 +1,9 @@
-import { JSX, useState } from 'react';
+import { JSX, useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Button, Container, Paper, Typography } from '@mui/material';
 import { TextInput } from '@mantine/core';
 import { baseURL } from '../components/utils';
+import CryptoJS from 'crypto-js';
 
 const ResetPassword = (): JSX.Element => {
   const [email, setEmail] = useState('');
@@ -11,12 +12,31 @@ const ResetPassword = (): JSX.Element => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [, setLocation] = useLocation();
 
-  const handleSubmit = async () => {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+        handleReset();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [email, password]);
+
+  const handleReset = async () => {
     setError('');
+
+    if (email === '' || password === '' || confirmPassword === '') {
+      setError('Please fill in all fields');
+      return;
+    }
 
     if (await userExists()) {
       if (password.length < 8) {
-        setError('Password must be at least 8 characters');
+        setError('Password must be at least 8 characters long');
         return;
       }
 
@@ -24,7 +44,6 @@ const ResetPassword = (): JSX.Element => {
         setError('Passwords do not match');
         return;
       }
-
       createNewPassword()
     }
   };
@@ -53,7 +72,7 @@ const ResetPassword = (): JSX.Element => {
       const salt = CryptoJS.lib.WordArray.random(16).toString();
       const hashedPassword = CryptoJS.SHA256(password + salt).toString();
 
-      const response = await fetch(`${baseURL}/reset-password`, {
+      const response = await fetch(`${baseURL}/reset-password/${email}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,7 +101,7 @@ const ResetPassword = (): JSX.Element => {
     <Container maxWidth="xs">
       <Paper elevation={3} sx={{ p: 3, mt: 8 }}>
         <Typography variant="h5" gutterBottom align="center" sx={{ mb: 2 }}>
-          Set the new password
+          Password reset
         </Typography>
 
         <TextInput
@@ -91,7 +110,6 @@ const ResetPassword = (): JSX.Element => {
           name='email'
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          error={!!error}
           placeholder="you@example.com"
           mb="md"
         />
@@ -110,17 +128,26 @@ const ResetPassword = (): JSX.Element => {
           type="password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          error={!!error}
         />
+
+        {error && (
+          <Typography
+            variant="body2"
+            color="error"
+            sx={{ mt: 2, textAlign: 'center' }}
+          >
+            {error}
+          </Typography>
+        )}
 
         <div style={{ marginBottom: '16px' }}></div>
         <Button
           fullWidth
           variant="contained"
-          onClick={handleSubmit}
+          onClick={handleReset}
           sx={{ mb: 2 }}
         >
-          Reset
+          Set the new password
         </Button>
 
         <Button

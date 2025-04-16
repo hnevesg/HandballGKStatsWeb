@@ -132,6 +132,10 @@ class RegisterRequest(BaseModel):
     team: int
     user_type: str  # 'portero' o 'entrenador'
 
+class ResetPswdRequest(BaseModel):
+    email: str
+    password: str
+    salt: str
 # ------------------- Authentication -------------------
 @app.post("/register")
 def register_user(request: RegisterRequest):
@@ -202,24 +206,24 @@ def get_user(email: str):
     return player
 
 @app.post("/reset-password/{email}")
-def reset_password(email: str, new_password: str, salt: str):
+def reset_password(request: ResetPswdRequest):
     """Función para restablecer la contraseña de un usuario."""
     session = SessionLocal()
-    user = session.query(User).filter(User.email == email).first()
+    user = session.query(User).filter(User.email == request.email).first()
     if not user:
         session.close()
         raise HTTPException(status_code=404, detail="User not found")
     
     try:
-        user.password = new_password
-        user.salt = salt
+        user.password = request.password
+        user.salt = request.salt
         session.commit()
-        logging.info(f"Password for {email} reset successfully")
+        logging.info(f"Password for {request.email} reset successfully")
         return {"message": "Password reset successfully"}
     except Exception as e:
         logging.error(f"Error resetting password: {e}")
         session.rollback()
-        raise HTTPException(status_code=500, detail="Error while resetting password")
+        raise HTTPException(status_code=500, detail=e)
     finally:
         session.close()
 # ------------------- Sessions -------------------
@@ -859,4 +863,4 @@ signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == "__main__":
    # Base.metadata.create_all(bind=engine)
-    uvicorn.run(app, host="192.168.18.13", port=12345)
+    uvicorn.run(app, host="192.168.18.17", port=12345)

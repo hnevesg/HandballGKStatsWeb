@@ -63,7 +63,6 @@ const ComparisonDetails = (): JSX.Element => {
     try {
       const response = await fetch(`${baseURL}/sessionData/${session1.date}`);
       if (response.ok) {
-        console.log("Session Tracking P1 ANSWER")
         const dataP1 = await response.json();
         setSessionDataP1(dataP1);
       } else {
@@ -72,7 +71,6 @@ const ComparisonDetails = (): JSX.Element => {
 
       let responseP2 = await fetch(`${baseURL}/sessionData/${session2.date}`);
       if (responseP2.ok) {
-        console.log("Session Tracking P2 ANSWER")
         const dataP2 = await responseP2.json();
         setSessionDataP2(dataP2);
       } else {
@@ -88,7 +86,6 @@ const ComparisonDetails = (): JSX.Element => {
     try {
       const response = await fetch(`${baseURL}/sessionTracking/${session1.date}`);
       if (response.ok) {
-        console.log("Session Tracking P1 ANSWER")
         const dataP1 = await response.json();
         setSessionTrackingP1(dataP1);
       } else {
@@ -97,7 +94,6 @@ const ComparisonDetails = (): JSX.Element => {
 
       let responseP2 = await fetch(`${baseURL}/sessionTracking/${session2.date}`);
       if (responseP2.ok) {
-        console.log("Session Tracking P2 ANSWER")
         const dataP2 = await responseP2.json();
         setSessionTrackingP2(dataP2);
       } else {

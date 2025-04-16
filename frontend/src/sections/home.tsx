@@ -40,7 +40,7 @@ const Home = (): JSX.Element => {
 
   useEffect(() => {
     if (!loggedUser) return;
-    console.log(loggedUser);
+
     getSessions();
 
     if (loggedUser?.role === Rol.ENTRENADOR) {

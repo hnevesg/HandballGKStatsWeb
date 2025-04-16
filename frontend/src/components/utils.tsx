@@ -5,7 +5,8 @@ export const formatDate = (dateString: string) => {
 import { Box, Avatar, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Session } from '../types/session';
 
-export const baseURL = 'http://192.168.18.13:12345';
+export const baseURL = 'http://192.168.18.17:12345';
+export const streamingURL = 'ws://192.168.18.17:12345/webrtc-signaling';
 
 export const PlayerTable = ({
   playerName,
