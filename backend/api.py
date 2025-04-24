@@ -566,26 +566,27 @@ def get_plot_times(session_date: str):
 def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de paradas de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
-   
-    i = 0
-    saves = []
-    session_dates = []
-    
+       
     if sessions:
+        saves = []
+        session_dates = []
+
         for session in sessions:
             data = get_session_data(session.date)
             saves.append(data.n_saves)
             session_dates.append(session.date)
-            i += 1
         
         fig, ax = pyplot.subplots()
         
-        ax.plot(session_dates, saves, label='Saves', color='blue', marker='o', linestyle='-')
+        labels = [session.date.strftime("%Y-%m-%d %H:%M") for session in sessions]
+        x = list(range(len(labels)))          
+        
+        ax.plot(x, saves, label='Saves', color='blue', marker='o', linestyle='-')
         ax.set_ylim(0, max(saves)+1) 
         ax.set_ylabel('Nº of saves')
         ax.set_xlabel('Sessions Dates')
-        ax.set_xticks(session_dates)
-        ax.set_xticklabels(session_dates, rotation=45, ha='right')
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=45, ha='right')
         ax.legend()
         
         fig.tight_layout()
@@ -666,7 +667,7 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
 
-@app.get("/times-progress/{player_id}")
+'''@app.get("/times-progress/{player_id}")
 def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de tiempo de duración de sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
@@ -701,31 +702,33 @@ def get_times_progress(player_id: int, begin_date: str, end_date: str, mode: str
         return Response(buffer.getvalue(), media_type="image/png")
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
+'''
   
 @app.get("/lights-progress/{player_id}")
 def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str, level: str):
     """Función que crea el gráfico de progreso de luces tocadas de varias sesiones."""
     sessions = get_sessions(player_id, mode, level, begin_date, end_date)
-   
-    i = 0
-    lights = []
-    session_dates = []
-    
+       
     if sessions:
+        lights = []
+        session_dates = []
+
         for session in sessions:
             data = get_session_data(session.date)
             lights.append(data.n_lights)
             session_dates.append(session.date)
-            i += 1
         
         fig, ax = pyplot.subplots()
         
-        ax.plot(session_dates, lights, label='Saves', color='blue', marker='o', linestyle='-')
+        labels = [session.date.strftime("%Y-%m-%d %H:%M") for session in sessions]
+        x = list(range(len(labels)))  
+        
+        ax.plot(x, lights, label='Lights', color='blue', marker='o', linestyle='-')
         ax.set_ylim(0, max(lights)+1) 
         ax.set_ylabel('Nº of touched lights')
         ax.set_xlabel('Sessions Dates')
-        ax.set_xticks(session_dates)
-        ax.set_xticklabels(session_dates, rotation=45, ha='right')
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=45, ha='right')
         ax.legend()
         
         fig.tight_layout()
@@ -738,14 +741,14 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
         return Response(buffer.getvalue(), media_type="image/png")
     else:
         raise HTTPException(status_code=404, detail="No se encontraron sesiones")
-  
+    
 @app.get("/barchart-comparison/{session_date1}/{session_date2}")
-def get_barchart_comparison(session_date1: str, session_date2: str):
+def get_barchart_comparison(session_date1: str, session_date2: str, player1_name: str, player2_name: str):
     """Función que crea el gráfico de barras comparativo de lanzamientos de dos sesiones."""
     sessionP1 = get_session_data(session_date1)
     sessionP2 = get_session_data(session_date2)
     
-    labels = ['Player 1', 'Player 2']
+    labels = [player1_name, player2_name]
     x = np.arange(len(labels))
     width = 0.15
     fig, ax = pyplot.subplots(figsize=(6, 4))
@@ -759,7 +762,7 @@ def get_barchart_comparison(session_date1: str, session_date2: str):
     ax.set_ylabel('Nº of shoots')
     ax.set_title('Total nº of goals & saves')
     ax.set_xticks(x)
-    ax.set_xticklabels(labels, ha='right')
+    ax.set_xticklabels(labels, ha='center')
     ax.yaxis.set_major_locator(MaxNLocator(integer=True))
     ax.legend()
     

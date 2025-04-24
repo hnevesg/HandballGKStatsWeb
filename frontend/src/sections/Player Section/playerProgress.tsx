@@ -20,7 +20,7 @@ const PlayerProgress = (): JSX.Element => {
   const [player, setPlayer] = useState<User | null>(null);
   const [progressSavesGraphURL, setProgressSavesGraphURL] = useState<string | null>(null);
   const [heatmapURL, setHeatmapURL] = useState<string | null>(null);
-  const [progressTimesGraphURL, setProgressTimesGraphURL] = useState<string | null>(null);
+  //const [progressTimesGraphURL, setProgressTimesGraphURL] = useState<string | null>(null);
   const [progressLightsGraphURL, setProgressLightsGraphURL] = useState<string | null>(null);
   const [noSessions, setNoSessions] = useState(false);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
@@ -53,7 +53,7 @@ const PlayerProgress = (): JSX.Element => {
           setNoSessions(true);
           setProgressSavesGraphURL(null);
           setHeatmapURL(null);
-          setProgressTimesGraphURL(null);
+          // setProgressTimesGraphURL(null);
           setProgressLightsGraphURL(null);
           return;
         } else {
@@ -65,7 +65,7 @@ const PlayerProgress = (): JSX.Element => {
         setNoSessions(true);
         setProgressSavesGraphURL(null);
         setHeatmapURL(null);
-        setProgressTimesGraphURL(null);
+        // setProgressTimesGraphURL(null);
         setProgressLightsGraphURL(null);
       } finally {
         setLoading(false);
@@ -74,31 +74,31 @@ const PlayerProgress = (): JSX.Element => {
 
       let progressSavesGraphUrl = `${baseURL}/saves-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
       let heatmapUrl = `${baseURL}/heatmap-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
-      let progressTimesGraphUrl = `${baseURL}/times-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
+      // let progressTimesGraphUrl = `${baseURL}/times-progress/${player?.id}?begin_date=${formattedBeginDate}&end_date=${formattedEndDate}&mode=${mode}&level=${level}&t=${timestamp}`;
 
       try {
         let savesResponse = await fetch(progressSavesGraphUrl);
         let heatmapResponse = await fetch(heatmapUrl);
-        let timesResponse = await fetch(progressTimesGraphUrl);
+        //  let timesResponse = await fetch(progressTimesGraphUrl);
 
-        if (!savesResponse.ok || !heatmapResponse.ok || !timesResponse.ok) {
+        if (!savesResponse.ok || !heatmapResponse.ok) { // || !timesResponse.ok) {
           setNoSessions(true);
           setProgressSavesGraphURL(null);
           setHeatmapURL(null);
-          setProgressTimesGraphURL(null);
+          //  setProgressTimesGraphURL(null);
           return;
         } else {
           setNoSessions(false);
           setProgressSavesGraphURL(progressSavesGraphUrl);
           setHeatmapURL(heatmapUrl);
-          setProgressTimesGraphURL(progressTimesGraphUrl);
+          //  setProgressTimesGraphURL(progressTimesGraphUrl);
         }
       } catch (error) {
         console.error("Error fetching session data", error);
         setNoSessions(true);
         setProgressSavesGraphURL(null);
         setHeatmapURL(null);
-        setProgressTimesGraphURL(null);
+        // setProgressTimesGraphURL(null);
       } finally {
         setLoading(false);
       }
@@ -118,7 +118,9 @@ const PlayerProgress = (): JSX.Element => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4">Personal Progress</Typography>
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            <Typography variant="h4" align="center">Personal Progress</Typography>
+          </Box>
         </Box>
 
         <Box sx={{
@@ -213,9 +215,9 @@ const PlayerProgress = (): JSX.Element => {
                 {(level !== "LightsReaction" && level !== "LightsReaction2") && (
                   <>
                     <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1}}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1 }}>
                         <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom>Nº of saves per session</Typography>
+                          <Typography variant="h6" gutterBottom align="center">Nº of saves per session</Typography>
                           <Box sx={{
                             width: '100%',
                             display: 'flex',
@@ -253,9 +255,9 @@ const PlayerProgress = (): JSX.Element => {
                         </Box>
                       )}*/}
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1}}>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1 }}>
                         <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom>Heatmap of total shots</Typography>
+                          <Typography variant="h6" gutterBottom align='center'>Heatmap of total shots</Typography>
                           <Box sx={{
                             position: 'relative',
                             backgroundSize: 'contain',
@@ -288,7 +290,7 @@ const PlayerProgress = (): JSX.Element => {
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '100%', justifyContent: 'center' }}>
               <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
                 <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                  <Typography variant="h6" gutterBottom>Nº of lights touched per session</Typography>
+                  <Typography variant="h6" gutterBottom align="center">Nº of lights touched per session</Typography>
                   <Box sx={{
                     width: '100%',
                     display: 'flex',

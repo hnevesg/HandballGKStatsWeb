@@ -10,6 +10,7 @@ import { User } from '../../types/user';
 import { Session } from '../../types/session';
 import { SessionTracking } from '../../types/sessionTracking';
 import { SessionData } from '../../types/sessionData';
+import { formatDate } from '../../components/utils';
 import { baseURL } from '../../components/utils';
 
 const ComparisonDetails = (): JSX.Element => {
@@ -112,7 +113,7 @@ const ComparisonDetails = (): JSX.Element => {
       let plotReactionTimesP2Url = `${baseURL}/reaction-speed/${session2?.date}`;
       setPlotReactionTimesP2URL(plotReactionTimesP2Url);
     } else {
-      let barchartShootsUrl = `${baseURL}/barchart-comparison/${session1?.date}/${session2?.date}`;
+      let barchartShootsUrl = `${baseURL}/barchart-comparison/${session1?.date}/${session2?.date}?player1_name=${player1?.name}&player2_name=${player2?.name}`;
       setBarchartURL(barchartShootsUrl);
 
       let heatmapP1Url = `${baseURL}/heatmap/${session1?.date}`;
@@ -164,6 +165,7 @@ const ComparisonDetails = (): JSX.Element => {
     <Box>
       <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
+
         <Box sx={{ display: 'flex', alignItems: "center", mb: 6 }}>
           <IconButton
             onClick={goBack}
@@ -171,14 +173,53 @@ const ComparisonDetails = (): JSX.Element => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4">Players Comparison</Typography>
+          <Typography variant="h4" align="center" sx={{ flex: 1 }}>Players Comparison</Typography>
         </Box>
+
+        <Container maxWidth="lg" sx={{ position: 'relative' }} >
+          {/* Rectangle with session info */}
+          <Box
+            sx={{
+              position: 'absolute',
+              left: 24,
+              zIndex: 10,
+              minWidth: 250,
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              boxShadow: 3,
+              p: 2,
+            }}
+          >
+            <Typography variant="subtitle2" color="text.secondary" align='center'>
+              Sessions Details
+            </Typography>
+
+            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
+              <Box component="span" sx={{ fontWeight: 'bold' }}>
+                Mode:
+              </Box>
+              <Box component="span" sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
+                <span>{session1?.prestige_level ? session1.prestige_level : 'N/A'}</span>
+              </Box>
+            </Typography>
+
+            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start' }}>
+              <Box component="span" sx={{ fontWeight: 'bold' }}>
+                Dates:
+              </Box>
+              <Box component="span" sx={{ display: 'flex', flexDirection: 'column', ml: 1 }}>
+                <span>{session1?.date ? formatDate(session1.date) : 'N/A'}</span>
+                <span>{session2?.date ? formatDate(session2.date) : 'N/A'}</span>
+              </Box>
+            </Typography>
+          </Box>
+        </Container>
 
         <Box sx={{
           display: 'flex',
           justifyContent: "center",
           alignItems: "center",
-          gap: 2,
+          gap: 1,
           mb: 6
         }}>
           <Box sx={{ textAlign: "center" }}>
@@ -195,7 +236,7 @@ const ComparisonDetails = (): JSX.Element => {
             <Typography>{player1?.name}</Typography>
           </Box>
 
-          <Typography variant="h6" sx={{ mx: 1 }}>vs</Typography>
+          <Typography variant="h6" sx={{ mr: 2 }}>vs</Typography>
 
           <Box sx={{ textAlign: "center" }}>
             <Avatar
@@ -258,7 +299,7 @@ const ComparisonDetails = (): JSX.Element => {
                     <TableRow>
                       <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
                       <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{parseInt(sessionDataP1?.session_time || '0')}s</TableCell>
-                      <TableCell align="center">{parseInt(sessionDataP2?.session_time ||'0')}s</TableCell>
+                      <TableCell align="center">{parseInt(sessionDataP2?.session_time || '0')}s</TableCell>
                     </TableRow>
                     {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
                       <>
@@ -271,13 +312,13 @@ const ComparisonDetails = (): JSX.Element => {
                     )}
                     <TableRow>
                       <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
-                      <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{LhandSpeedP1?.toFixed(3)}m/s</TableCell>
-                      <TableCell align="center">{LhandSpeedP2?.toFixed(3)}m/s</TableCell>
+                        <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{LhandSpeedP1 ? `${LhandSpeedP1.toFixed(3)} m/s` : 'N/A'}</TableCell>
+                        <TableCell align="center">{LhandSpeedP2 ? `${LhandSpeedP2.toFixed(3)} m/s` : 'N/A'}</TableCell>
                     </TableRow>
                     <TableRow>
                       <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
-                      <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{RhandSpeedP1?.toFixed(3)}m/s</TableCell>
-                      <TableCell align="center">{RhandSpeedP2?.toFixed(3)}m/s</TableCell>
+                        <TableCell align="center" sx={{ borderRight: '1px solid black' }}>{RhandSpeedP1 ? `${RhandSpeedP1.toFixed(3)} m/s` : 'N/A'}</TableCell>
+                        <TableCell align="center">{RhandSpeedP2 ? `${RhandSpeedP2.toFixed(3)} m/s` : 'N/A'}</TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
@@ -334,10 +375,12 @@ const ComparisonDetails = (): JSX.Element => {
 
           {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
             <>
-              {/* Metric - Lines Plot */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                   <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                    <Typography variant="subtitle2" gutterBottom align="center">
+                      {player1?.name}
+                    </Typography>
                     {plotReactionTimesP1URL ? (
                       <img id={`reaction-speed-${session1?.id}`} src={plotReactionTimesP1URL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
@@ -345,8 +388,12 @@ const ComparisonDetails = (): JSX.Element => {
                     )}
                   </Paper>
                 </Box>
+
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                   <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                    <Typography variant="subtitle2" gutterBottom align="center">
+                      {player2?.name}
+                    </Typography>
                     {plotReactionTimesP2URL ? (
                       <img id={`reaction-speed-${session2?.id}`} src={plotReactionTimesP2URL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (

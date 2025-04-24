@@ -110,7 +110,7 @@ const PlayersSessions = (): JSX.Element => {
           >
             <ArrowBackIcon />
           </IconButton>
-          <Typography variant="h4">Players Comparison</Typography>
+            <Typography variant="h4" align="center" sx={{ flexGrow: 1 }}>Players Comparison</Typography>
         </Box>
 
         <Box sx={{

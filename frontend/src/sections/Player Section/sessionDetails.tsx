@@ -165,7 +165,7 @@ const SessionDetails = (): JSX.Element => {
                     >
                         <ArrowBackIcon />
                     </IconButton>
-                    <Typography variant="h4" align="center">Statistics</Typography>
+                    <Typography variant="h4" align="center" sx={{ width: '100%' }}>Statistics</Typography>
                 </Box>
 
                 <Grid container spacing={4}>
@@ -189,7 +189,7 @@ const SessionDetails = (): JSX.Element => {
                                         <Box sx={{ mt: 2 }}>
                                             <Typography>Configuration</Typography>
                                             <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
-                                            <Typography variant="subtitle2">• Difficulty: {session?.prestige_level}</Typography>
+                                            <Typography variant="subtitle2">• Difficulty: <strong>{session?.prestige_level}</strong></Typography>
                                             {/*              <Typography variant="subtitle2">• Model size: {sessionData.configuration.modelSize}</Typography> */}
                                         </Box>
                                     </>
