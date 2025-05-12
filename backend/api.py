@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import signal
@@ -9,7 +10,7 @@ import hashlib
 import matplotlib
 matplotlib.use("Agg")
 from io import BytesIO
-from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -29,7 +30,8 @@ from SignalingServer import SignalingServer
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-DATABASE_URL = "mysql+pymysql://root:helena@192.168.18.13/gk_stats_web"  
+DATABASE_URL = "mysql+pymysql://root:helena@192.168.43.173/gk_stats_web"  
+SIGNALING_SERVER = "wss://192.168.43.173:5555/ws"
 
 signaling_srv = SignalingServer()
 
@@ -176,6 +178,17 @@ async def login_staff(request: LoginRequest):
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
+@app.post("/login-admin")
+async def login_staff(request: LoginRequest):
+    """Función para iniciar sesión del administrador del sistema."""
+    session = SessionLocal()
+    user = session.query(User).filter(User.email == request.email).first()
+    session.close()
+    if user:
+        return authenticate_user(user, request.password, Rol.ADMIN.value)
+    else:
+        raise HTTPException(status_code=404, detail="User not found")
+
 @app.post("/login-players")
 async def login_players(request: LoginRequest):
     """Función para iniciar sesión de jugadores."""
@@ -187,11 +200,14 @@ async def login_players(request: LoginRequest):
     else:
         raise HTTPException(status_code=404, detail="User not found")
 
-@app.get("/players/{team_id}")
-def get_players(team_id: int):
+@app.get("/players")
+def get_players(team_id: int = Query(None)):
     """Función para obtener la lista de jugadores."""
     session = SessionLocal()
-    players = session.query(User).filter(User.role == Rol.PORTERO.value, User.teamID == team_id).all()
+    if team_id is not None:
+        players = session.query(User).filter(User.role == Rol.PORTERO.value, User.teamID == team_id).all()
+    else:
+        players = session.query(User).filter(User.role == Rol.PORTERO.value).all()
     session.close()
     return players
 
@@ -247,11 +263,14 @@ def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(Non
     session.close()
     return sessions
 
-@app.get("/team-sessions/{team_id}")
-def get_team_sessions(team_id: int):
+@app.get("/team-sessions")
+def get_team_sessions(team_id: int = Query(None)):
     """Función para obtener la lista de sesiones de un equipo."""
     session = SessionLocal()
-    sessions = session.query(Session).filter(User.teamID == team_id).all()
+    if team_id is None:
+        sessions = session.query(Session).all()
+    else:
+        sessions = session.query(Session).filter(User.teamID == team_id).all()
     session.close()
     return sessions
 
@@ -715,7 +734,7 @@ def get_saves_progress(player_id: int, begin_date: str, end_date: str, mode: str
 
         for session in sessions:
             data = get_session_data(session.date)
-            lights.append(data.n_lights)
+            lights.append(data.n_lights)            
             session_dates.append(session.date)
         
         fig, ax = pyplot.subplots()
@@ -849,15 +868,18 @@ async def websocket_endpoint(websocket: WebSocket):
     try:
         while True:
             data = await websocket.receive_json()
+            print("Received data:", data)
             if "target" in data and data["target"]:
                 # Direct message to specific client
                 await signaling_srv.send_personal_message(data, websocket)
             else:
                 # Broadcast to all other clients
+                print("Broadcasting message")
                 await signaling_srv.broadcast(data, websocket)
     except WebSocketDisconnect:
         signaling_srv.disconnect(websocket)
-
+    except RuntimeError as e:
+        print(f"Runtime error: {e}")
 
 def shutdown():
     sys.exit(0)
@@ -866,4 +888,6 @@ signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == "__main__":
    # Base.metadata.create_all(bind=engine)
-    uvicorn.run(app, host="192.168.18.17", port=12345)
+    time.sleep(2)  # wait for scrcpy window to appear
+
+    uvicorn.run(app, host="gkstatsweb.duckdns.org", port=12345, ssl_keyfile="certs/privkey.pem", ssl_certfile="certs/cert.pem")

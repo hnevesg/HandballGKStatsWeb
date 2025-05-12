@@ -3,6 +3,7 @@ import { Route, Switch } from 'wouter';
 import Register from './sections/register';
 import LoginStaff from './sections/loginstaff';
 import LoginPlayers from './sections/loginplayers'
+import LoginAdmin from './sections/loginadmin';
 import HomePage from './sections/home';
 import Portal from "./sections/pre-login_portal"
 import About from './sections/about';
@@ -26,6 +27,7 @@ function App() {
         <Route path="/register" component={Register} />
         <Route path="/loginplayers" component={LoginPlayers} />
         <Route path="/loginstaff" component={LoginStaff} />
+        <Route path="/loginadmin" component={LoginAdmin} />
         <Route path="/forgot-password" component={ResetPassword} />
 
 

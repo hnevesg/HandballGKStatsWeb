@@ -3,6 +3,7 @@ import { Container, Grid, Card, CardActionArea, Typography } from '@mui/material
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import GroupsIcon from '@mui/icons-material/Groups';
 import SportsHandballIcon from '@mui/icons-material/SportsHandball';
+import TuneIcon from '@mui/icons-material/Tune';
 
 const Portal = (): JSX.Element => {
   const cardData = [
@@ -23,6 +24,12 @@ const Portal = (): JSX.Element => {
       color: '#00FF44CC',
       icon: <GroupsIcon sx={{ fontSize: 40, color: 'white' }} />,
       path: '/loginstaff'
+    },
+    {
+      title: 'Admin Area',
+      color: '#A9A9A9CC',
+      icon: <TuneIcon sx={{ fontSize: 40, color: 'white' }} />,
+      path: '/loginadmin'
     }
   ];
 
@@ -34,9 +41,9 @@ const Portal = (): JSX.Element => {
         justifyContent: 'center'
       }}
     >
-      <Grid container spacing={3} sx={{ py: 4 }}>
+      <Grid container spacing={3} justifyContent="center" sx={{ py: 4 }}>
         {cardData.map((card, index) => (
-          <Grid item xs={12} sm={6} md={4} key={index}>
+          <Grid item xs={12} sm={6} md={5} key={index}>
             <Card
               sx={{
                 height: 200,

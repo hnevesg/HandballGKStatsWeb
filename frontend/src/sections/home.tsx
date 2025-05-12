@@ -31,12 +31,17 @@ const Home = (): JSX.Element => {
   }
 
   const getPlayers = async () => {
-    const response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
+    const url =
+      loggedUser?.role === Rol.ENTRENADOR
+        ? `${baseURL}/players?team_id=${loggedUser.teamID}`
+        : `${baseURL}/players`;
+
+    const response = await fetch(url);
     if (response.ok) {
       const data = await response.json();
       setPlayers(data);
     }
-  }
+  };
 
   useEffect(() => {
     if (!loggedUser) return;
@@ -44,6 +49,9 @@ const Home = (): JSX.Element => {
     getSessions();
 
     if (loggedUser?.role === Rol.ENTRENADOR) {
+      getPlayers();
+    }
+    else if (loggedUser?.role === Rol.ADMINISTRADOR) {
       getPlayers();
     }
   }, [loggedUser]);
@@ -57,8 +65,13 @@ const Home = (): JSX.Element => {
         setSessions(sortedSessions.slice(0, 5));
       }
     } else {
-      const response = await fetch(`${baseURL}/team-sessions/${loggedUser?.teamID}`);
-      if (response.ok) {
+      let response;
+      if (loggedUser?.role == Rol.ENTRENADOR) {
+        response = await fetch(`${baseURL}/team-sessions?team_id=${loggedUser?.teamID}`);
+      } else if (loggedUser?.role == Rol.ADMINISTRADOR) {
+        response = await fetch(`${baseURL}/team-sessions`);
+      }
+      if (response?.ok) {
         const data = await response.json();
         const sortedSessions = data.sort((a: Session, b: Session) => new Date(b.date).getTime() - new Date(a.date).getTime());
         setSessions(sortedSessions.slice(0, 5));
@@ -130,7 +143,7 @@ const Home = (): JSX.Element => {
               <Table>
                 <TableHead>
                   <TableRow>
-                    {loggedUser?.role === Rol.ENTRENADOR &&
+                    {(loggedUser?.role !== Rol.PORTERO) &&
                       <TableCell sx={{ borderBottom: '1px solid black', borderRight: '1px solid black', textAlign: 'center' }} >User</TableCell>
                     }
                     <TableCell sx={{ borderBottom: '1px solid black', textAlign: 'center' }}>Date</TableCell>
@@ -139,7 +152,7 @@ const Home = (): JSX.Element => {
                 <TableBody>
                   {sessions.map((session) => (
                     <TableRow key={session.id}>
-                      {loggedUser?.role === Rol.ENTRENADOR && (
+                      {loggedUser?.role !== Rol.PORTERO && (
                         <TableCell sx={{ borderRight: '1px solid black', textAlign: 'center' }}>{getPlayerName(session.player_id)}</TableCell>
                       )}
                       <TableCell sx={{ textAlign: 'center' }}>{formatDate(session.date).toString()}</TableCell>

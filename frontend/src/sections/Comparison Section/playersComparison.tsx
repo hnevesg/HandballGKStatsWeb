@@ -98,21 +98,38 @@ const PlayersComparison = (): JSX.Element => {
   };
 
   const getPlayers = async () => {
-    if (loggedUser?.role != Rol.ENTRENADOR) return;
+    if (loggedUser?.role != Rol.ENTRENADOR && loggedUser?.role != Rol.ADMINISTRADOR) return;
     try {
-      const response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
-      const data = await response.json();
+      if (loggedUser?.role == Rol.ENTRENADOR) {
+        const response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
+        const data = await response.json();
 
-      if (response.ok) {
-        const playersWithAvatars = data.map((player: User) => {
-          const [firstName = '', lastName = ''] = player.name.split(' ');
-          const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-          return { ...player, avatar };
-        });
+        if (response.ok) {
+          const playersWithAvatars = data.map((player: User) => {
+            const [firstName = '', lastName = ''] = player.name.split(' ');
+            const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+            return { ...player, avatar };
+          });
 
-        setPlayers(playersWithAvatars);
+          setPlayers(playersWithAvatars);
+        } else {
+          console.error('Failed to fetch players:', data.message || response.statusText);
+        }
       } else {
-        console.error('Failed to fetch players:', data.message || response.statusText);
+        const response = await fetch(`${baseURL}/players`);
+        const data = await response.json();
+
+        if (response.ok) {
+          const playersWithAvatars = data.map((player: User) => {
+            const [firstName = '', lastName = ''] = player.name.split(' ');
+            const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+            return { ...player, avatar };
+          });
+
+          setPlayers(playersWithAvatars);
+        } else {
+          console.error('Failed to fetch players:', data.message || response.statusText);
+        }
       }
     } catch (error) {
       console.error('Error fetching players:', error);
@@ -136,9 +153,9 @@ const PlayersComparison = (): JSX.Element => {
             backgroundColor: '#fce4ec',
             border: '1px solid #f8bbd0',
             borderRadius: '8px',
-            padding: '12px 16px', 
-            marginBottom: '24px', 
-            fontWeight: 600, 
+            padding: '12px 16px',
+            marginBottom: '24px',
+            fontWeight: 600,
             boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
           }}>Since you are a player, you don't have access to this section.</Typography>
         )}

@@ -110,11 +110,28 @@ const PlayerSection = (): JSX.Element => {
         });
 
         setPlayers(playersWithAvatars);
-      } else {
+      }
+      else {
+        console.error('Failed to fetch players:', data.message);
+      }
+    } else if (loggedUser?.role == Rol.ADMINISTRADOR) {
+      response = await fetch(`${baseURL}/players`);
+      const data = await response?.json();
+
+      if (response?.ok) {
+        const playersWithAvatars = data.map((player: User) => {
+          const [firstName = '', lastName = ''] = player.name.split(' ');
+          const avatar = `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+          return { ...player, avatar };
+        });
+
+        setPlayers(playersWithAvatars);
+      }
+      else {
         console.error('Failed to fetch players:', data.message);
       }
     }
-  };
+  }
 
   useEffect(() => {
     getPlayers();

@@ -5,8 +5,8 @@ export const formatDate = (dateString: string) => {
 import { Box, Avatar, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Session } from '../types/session';
 
-export const baseURL = 'http://192.168.18.17:12345';
-export const streamingURL = 'ws://192.168.18.17:12345/webrtc-signaling';
+export const baseURL = 'https://gkstatsweb.duckdns.org:12345';//'https://192.168.43.173:12345';
+export const streamingURL = 'wss://gkstatsweb.duckdns.org:12345/webrtc-signaling';
 
 export const PlayerTable = ({
   playerName,
