@@ -7,7 +7,7 @@ export default function LoginAdmin() {
     <LoginForm
       endpoint={`${baseURL}/login-admin`}
       avatarIcon={<TuneIcon />}
-      avatarColor="#A9A9A9CC"
+      avatarColor="#333333"
       showForgotPassword={false}
     />
   );

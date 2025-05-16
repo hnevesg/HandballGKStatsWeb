@@ -8,7 +8,7 @@ export default function LoginStaff() {
     <LoginForm
       endpoint={`${baseURL}/login-staff`}
       avatarIcon={<GroupsIcon />}
-      avatarColor="#00FF44CC"
+      avatarColor="#800080CC"
     />
   );
 }

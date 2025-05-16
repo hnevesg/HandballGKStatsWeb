@@ -8,7 +8,7 @@ export default function LoginPlayers() {
     <LoginForm
       endpoint={`${baseURL}/login-players`}
       avatarIcon={<SportsHandballIcon />}
-      avatarColor="#00CED1CC"
+      avatarColor="#FFD54F"
     />
   );
 }

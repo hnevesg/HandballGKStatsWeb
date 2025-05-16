@@ -130,7 +130,7 @@ const Register = () => {
         <Avatar
           sx={{
             m: 1,
-            bgcolor: '#FFD700CC',
+            bgcolor: '#FF0000CC',
             width: 56,
             height: 56
           }}
@@ -251,7 +251,7 @@ const Register = () => {
             sx={{
               mt: 3,
               mb: 2,
-              bgcolor: '#FFD700CC',
+              bgcolor: '#FF0000CC',
               '&:hover': {
                 bgcolor: '#40E0D0'
               }

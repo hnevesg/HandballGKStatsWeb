@@ -25,6 +25,8 @@ const SessionDetails = (): JSX.Element => {
     const [scatterplot2DPositionsURL, set2DScatterplotPositionsURL] = useState<any>(null);
     const [scatterplot3DPositionsURL, set3DScatterplotPositionsURL] = useState<any>(null);
     const [plotReactionTimesURL, setPlotReactionTimesURL] = useState<any>(null);
+    const [plotReactionSequenceURL, setPlotReactionSequenceURL] = useState<any>(null);
+    const [plotReactionAnimationURL, setPlotReactionAnimationURL] = useState<any>(null);
     const [LhandSpeed, setLhandSpeed] = useState<number>()
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
@@ -99,8 +101,14 @@ const SessionDetails = (): JSX.Element => {
         let scatterplot3DPositionsUrl = `${baseURL}/3D-scatterplot-positions/${session?.date}`;
         set3DScatterplotPositionsURL(scatterplot3DPositionsUrl);
 
-        let reactionplotUrl = `${baseURL}/reaction-speed/${session?.date}`;
-        setPlotReactionTimesURL(reactionplotUrl);
+        let reactionplotTimesUrl = `${baseURL}/reaction-speed-times/${session?.date}`;
+        setPlotReactionTimesURL(reactionplotTimesUrl);
+
+        let reactionplotSequenceUrl = `${baseURL}/reaction-speed-sequence/${session?.date}`;
+        setPlotReactionSequenceURL(reactionplotSequenceUrl);
+
+        let reactionplotAnimationUrl = `${baseURL}/reaction-speed-animation/${session?.date}`;
+        setPlotReactionAnimationURL(reactionplotAnimationUrl);
     }
 
     useEffect(() => {
@@ -238,13 +246,38 @@ const SessionDetails = (): JSX.Element => {
                                             </TableContainer>
                                         </Paper>
                                     </Box>
-                                    {/* Metric - Lines Plot */}
+                                    {/* Metric - Linear Time Plot */}
                                     <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                                         <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                                             {plotReactionTimesURL ? (
                                                 <img id={`reaction-speed-${session?.id}`} src={plotReactionTimesURL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                                             ) : (
                                                 <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                            )}
+                                        </Paper>
+                                    </Box>
+                                    {/* Metric - Lights Sequence Plot */}
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                            {plotReactionSequenceURL ? (
+                                                <img id={`reaction-speed-${session?.id}`} src={plotReactionSequenceURL} alt="Plot of reaction speed lights sequence" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                            )}
+                                        </Paper>
+                                    </Box>
+                                    {/* Metric - Lights Sequence Animation */}
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                            {plotReactionAnimationURL ? (
+                                                <img
+                                                    id={`reaction-speed-animation-${session?.id}`}
+                                                    src={plotReactionAnimationURL}
+                                                    alt="Reaction speed animation"
+                                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                                />
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">Loading animation...</Typography>
                                             )}
                                         </Paper>
                                     </Box>
@@ -325,7 +358,7 @@ const SessionDetails = (): JSX.Element => {
                                                     <TableBody>
                                                         <TableRow>
                                                             <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
-                                                            <TableCell align="center">{parseInt(sessionData?.session_time ||'0')}s</TableCell>
+                                                            <TableCell align="center">{parseInt(sessionData?.session_time || '0')}s</TableCell>
                                                         </TableRow>
                                                         <TableRow>
                                                             <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Saves Percentage</b></TableCell>
@@ -365,6 +398,8 @@ const SessionDetails = (): JSX.Element => {
                                         )}
                                     </Box>
                                 </Paper>
+                            </Box>
+                            <Box>
                             </Box>
                         </Box>
                     </Grid>

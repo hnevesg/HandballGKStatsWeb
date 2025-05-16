@@ -107,10 +107,10 @@ const ComparisonDetails = (): JSX.Element => {
 
   const getPlots = () => {
     if (session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") {
-      let plotReactionTimesP1Url = `${baseURL}/reaction-speed/${session1?.date}`;
+      let plotReactionTimesP1Url = `${baseURL}/reaction-speed-times/${session1?.date}`;
       setPlotReactionTimesP1URL(plotReactionTimesP1Url);
 
-      let plotReactionTimesP2Url = `${baseURL}/reaction-speed/${session2?.date}`;
+      let plotReactionTimesP2Url = `${baseURL}/reaction-speed-times/${session2?.date}`;
       setPlotReactionTimesP2URL(plotReactionTimesP2Url);
     } else {
       let barchartShootsUrl = `${baseURL}/barchart-comparison/${session1?.date}/${session2?.date}?player1_name=${player1?.name}&player2_name=${player2?.name}`;

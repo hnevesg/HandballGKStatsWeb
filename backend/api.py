@@ -1,16 +1,27 @@
+import tempfile
+import websockets
 import json
 import os
 import shutil
 import signal
 import sys
+import time
 import numpy as np
 import logging
 import uvicorn
 import hashlib
+import locale
+import pygetwindow
+import pyautogui
 import matplotlib
+import pandas as pd
+import cv2
+import asyncio
+import subprocess
 matplotlib.use("Agg")
 from io import BytesIO
 from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File, WebSocket, WebSocketDisconnect, Request
+from aiortc import RTCSessionDescription, RTCPeerConnection, RTCConfiguration, RTCIceServer, VideoStreamTrack
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -26,6 +37,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from roles import Rol
 from send_to_db import load_csv_to_mysql
 from SignalingServer import SignalingServer
+from ScreenCaptureTrack import ScreenCaptureTrack
+from plot_animacion_luces import create_animation
 
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -34,6 +47,7 @@ DATABASE_URL = "mysql+pymysql://root:helena@192.168.43.173/gk_stats_web"
 SIGNALING_SERVER = "wss://192.168.43.173:5555/ws"
 
 signaling_srv = SignalingServer()
+screentrack_sender = ScreenCaptureTrack()
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -205,8 +219,10 @@ def get_players(team_id: int = Query(None)):
     """Función para obtener la lista de jugadores."""
     session = SessionLocal()
     if team_id is not None:
+        print("not hereeeeeee")
         players = session.query(User).filter(User.role == Rol.PORTERO.value, User.teamID == team_id).all()
     else:
+        print("hereeeeeeeeeeeEEEEEEEEEE")
         players = session.query(User).filter(User.role == Rol.PORTERO.value).all()
     session.close()
     return players
@@ -480,9 +496,17 @@ def get_scatterplot_positions(session_date: str):
    
     fig, ax = pyplot.subplots()
 
-   # ax.scatter(head_pos_x, head_pos_y, label="Head", color='red', alpha=0.7)
-    ax.scatter(handR_pos_x, handR_pos_y, label="Right Hand", color='blue', alpha=0.7)
-    ax.scatter(handL_pos_x, handL_pos_y, label="Left Hand", color='green', alpha=0.7)
+    head_pos_x_diff = head_pos_x - np.mean(head_pos_x)
+    head_pos_y_diff = head_pos_y - np.mean(head_pos_y)
+    ax.scatter(head_pos_x_diff, head_pos_y_diff, label="Head (Relative Difference)", color='red', alpha=0.7)
+    
+    handR_pos_x_diff = handR_pos_x - np.mean(handR_pos_x)
+    handR_pos_y_diff = handR_pos_y - np.mean(handR_pos_y)
+    ax.scatter(handR_pos_x_diff, handR_pos_y_diff, label="Right Hand (Relative Difference)", color='blue', alpha=0.7)
+
+    handL_pos_x_diff = handL_pos_x - np.mean(handL_pos_x)
+    handL_pos_y_diff = handL_pos_y - np.mean(handL_pos_y)
+    ax.scatter(handL_pos_x_diff, handL_pos_y_diff, label="Left Hand (Relative Difference)", color='green', alpha=0.7)
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
@@ -529,9 +553,20 @@ def get_3D_scatterplot_positions(session_date: str):
     fig = pyplot.figure()
     ax = fig.add_subplot(111, projection='3d') 
 
-   # ax.scatter(head_pos_x, head_pos_y, head_pos_z, label="Head", color='red', alpha=0.7)
-    ax.scatter(handR_pos_x, handR_pos_y, handR_pos_z, label="Right Hand", color='blue', alpha=0.7)
-    ax.scatter(handL_pos_x, handL_pos_y, handL_pos_z, label="Left Hand", color='green', alpha=0.7)
+    head_pos_x_diff = head_pos_x - np.mean(head_pos_x)
+    head_pos_y_diff = head_pos_y - np.mean(head_pos_y)
+    head_pos_z_diff = head_pos_z - np.mean(head_pos_z)
+    ax.scatter(head_pos_x_diff, head_pos_y_diff, head_pos_z_diff, label="Head (Relative Difference)", color='red', alpha=0.7)
+    
+    handR_pos_x_diff = handR_pos_x - np.mean(handR_pos_x)
+    handR_pos_y_diff = handR_pos_y - np.mean(handR_pos_y)
+    handR_pos_z_diff = handR_pos_z - np.mean(handR_pos_z)
+    ax.scatter(handR_pos_x_diff, handR_pos_y_diff, handR_pos_z_diff, label="Right Hand (Relative Difference)", color='blue', alpha=0.7)
+
+    handL_pos_x_diff = handL_pos_x - np.mean(handL_pos_x)
+    handL_pos_y_diff = handL_pos_y - np.mean(handL_pos_y)
+    handL_pos_z_diff = handL_pos_z - np.mean(handL_pos_z)
+    ax.scatter(handL_pos_x_diff, handL_pos_y_diff, handL_pos_z_diff, label="Left Hand (Relative Difference)", color='green', alpha=0.7)
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
@@ -552,12 +587,13 @@ def get_plot_times(session_date: str):
     """Función que crea el gráfico de dispersión de la velocidad de reacción en cada lanzamiento."""
     session_data = get_session_data(session_date)
     
-    shoots_initial_time = session_data.shoots_initial_time.split(",")
-    shoots_final_time = session_data.shoots_final_time.split(",")
+    locale.setlocale(locale.LC_NUMERIC, 'C')  # For consistent decimal point handling
+    shoots_initial_time = [locale.atof(time) for time in session_data.shoots_initial_time.split(",")]
+    shoots_final_time = [locale.atof(time) for time in session_data.shoots_final_time.split(",")]
 
     reaction_times = []
     for initial_time, final_time in zip(shoots_initial_time, shoots_final_time):
-        reaction_times.append(float(final_time) - float(initial_time))
+        reaction_times.append(final_time - initial_time)
     
     reaction_times = np.array(reaction_times)
     n_shots = np.arange(1, len(reaction_times) + 1) 
@@ -794,8 +830,8 @@ def get_barchart_comparison(session_date1: str, session_date2: str, player1_name
     
     return Response(buffer.getvalue(), media_type="image/png")
 
-@app.get("/reaction-speed/{session_date}")
-def get_reaction_speed(session_date: str):
+@app.get("/reaction-speed-times/{session_date}")
+def get_reaction_speed_times(session_date: str):
     """Función que crea el gráfico de líneas de velocidad de reacción de una sesión de luces."""
     session_data = get_session_data(session_date)
     session_reaction = get_session_reaction(session_date)
@@ -832,6 +868,67 @@ def get_reaction_speed(session_date: str):
         buffer.seek(0)
             
         return Response(buffer.getvalue(), media_type="image/png")
+
+@app.get("/reaction-speed-sequence/{session_date}")
+def get_reaction_speed_sequence(session_date: str):
+    """Función que crea el gráfico de la secuencia de luces encendidas."""
+    session_reaction = get_session_reaction(session_date)
+    
+    if len(session_reaction) > 0:
+        secuencia_luces = []
+        secuencia_luces, secuencia_tiempos = [], []
+        for frame in session_reaction:
+            if frame.status == 'tocado':
+                secuencia_luces.append(frame.light_id)
+                secuencia_tiempos.append(frame.Time)        
+                    
+        fig, ax = pyplot.subplots()
+        
+        ax.scatter(secuencia_tiempos, secuencia_luces, color='blue', alpha=0.7)
+        ax.set_title('Interactivity Over Time (Touched Lights)')
+#        ax.set_ylim(0, max(secuencia_luces)+1)
+        ax.set_xlabel('Time (s)')
+        ax.set_ylabel('Light ID (0 = left, 8 = right)')
+        ax.set_yticks(range(0, 9))
+        ax.grid(True)
+        
+        fig.tight_layout()
+
+        buffer = BytesIO()
+        fig.savefig(buffer, format='png', bbox_inches='tight')
+        pyplot.close(fig)
+        buffer.seek(0)
+            
+        return Response(buffer.getvalue(), media_type="image/png")
+
+@app.get("/reaction-speed-animation/{session_date}")
+def get_reaction_speed_animation(session_date: str):
+    """Función que crea la animación de la secuencia de luces encendidas."""
+    session_reaction = get_session_reaction(session_date)
+    
+    if len(session_reaction) > 0:
+        secuencia_luces = [frame for frame in session_reaction if frame.status == 'tocado']
+                    
+        df_luces = pd.DataFrame([{
+            'ID_Luz': frame.light_id,
+            'Tiempo': frame.Time,
+            'Estatus': frame.status
+        } for frame in secuencia_luces])
+
+
+
+        with tempfile.NamedTemporaryFile(suffix=".gif", delete=False) as tmpfile:
+            tmp_path = tmpfile.name
+
+        animation = create_animation(df_luces)
+        animation.save(tmp_path, writer='pillow')
+
+        with open(tmp_path, "rb") as f:
+            gif_bytes = f.read()
+
+        os.remove(tmp_path)
+
+        return Response(gif_bytes, media_type="image/gif")
 
 # ------------------- DB management -------------------
 @app.post("/upload_csv")
