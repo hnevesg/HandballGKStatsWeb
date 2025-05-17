@@ -1,15 +1,13 @@
 import {
-  Box, Container, Typography, TextField, Select, MenuItem,
-  Avatar, IconButton, FormControl, Button,
-  Grid,
-  Paper
+  Backdrop, Box, CircularProgress, Container, Typography, TextField, Select, MenuItem,
+  Avatar, IconButton, FormControl, Button, Grid, Paper
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import Navbar from '../../components/navBar';
 import { User } from '../../types/user';
-import { baseURL } from '../../components/utils';
+import { baseURL, PDFExporter } from '../../components/utils';
 
 const PlayerProgress = (): JSX.Element => {
   const [, navigate] = useLocation();
@@ -25,6 +23,8 @@ const PlayerProgress = (): JSX.Element => {
   const [noSessions, setNoSessions] = useState(false);
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const { exporting, exportPDF } = PDFExporter();
 
   useEffect(() => {
     const state = window.history.state;
@@ -105,6 +105,15 @@ const PlayerProgress = (): JSX.Element => {
     }
   }
 
+  const handleExportPDF = () => {
+    if (pdfRef.current) {
+      const playerName = player?.name ? player.name.replace(/\s/g, '') : 'player';
+      const sessionLevel = level;
+      const fileName = `session-progress_${playerName}_${sessionLevel}.pdf`;
+      exportPDF(pdfRef.current, fileName);
+    }
+  };
+
   return (
     <Box>
       <Navbar user={loggedUser} />
@@ -123,119 +132,140 @@ const PlayerProgress = (): JSX.Element => {
           </Box>
         </Box>
 
-        <Box sx={{
-          display: 'flex',
-          alignItems: 'center',
-          mb: 4,
-          gap: 4
-        }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
-            <Typography variant="h6" sx={{ textAlign: 'center', display: '-webkit-box' }}>{player?.name} </Typography>
-          </Box>
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>Begin Date</Typography>
-            <TextField
-              type="date"
-              value={beginDate}
-              onChange={(e) => setBeginDate(e.target.value)}
-              sx={{ width: 200 }}
-            />
-          </Box>
+        <Box ref={pdfRef}>
 
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>End Date</Typography>
-            <TextField
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              sx={{ width: 200 }}
-            />
-          </Box>
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            mb: 4,
+            gap: 4
+          }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
+              <Typography variant="h6" sx={{ textAlign: 'center', display: '-webkit-box' }}>{player?.name} </Typography>
+            </Box>
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Begin Date</Typography>
+              <TextField
+                type="date"
+                value={beginDate}
+                onChange={(e) => setBeginDate(e.target.value)}
+                sx={{ width: 200 }}
+              />
+            </Box>
 
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>Mode</Typography>
-            <FormControl sx={{ width: 200 }}>
-              <Select
-                value={mode}
-                onChange={(e) => setMode(e.target.value)}
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>End Date</Typography>
+              <TextField
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                sx={{ width: 200 }}
+              />
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Mode</Typography>
+              <FormControl sx={{ width: 200 }}>
+                <Select
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value)}
+                >
+                  <MenuItem value="Default">Default</MenuItem>
+                  <MenuItem value="Fixed Position">Fixed Position</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Typography variant="subtitle2" gutterBottom>Difficulty</Typography>
+              <FormControl sx={{ width: 200 }}>
+                <Select
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                >
+                  <MenuItem value="Beginner">Beginner</MenuItem>
+                  <MenuItem value="Intermediate">Intermediate</MenuItem>
+                  <MenuItem value="Expert">Expert</MenuItem>
+                  <MenuItem value="Progressive">Progressive I</MenuItem>
+                  <MenuItem value="Progressive2">Progressive II</MenuItem>
+                  <MenuItem value="PerTime">PerTime</MenuItem>
+                  <MenuItem value="LightsReaction">Lights Reaction I</MenuItem>
+                  <MenuItem value="LightsReaction2">Lights Reaction II</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
+            <Box>
+              <Button variant="contained"
+                disabled={!beginDate || !endDate || endDate < beginDate || !mode || !level}
+                onClick={() => handleStatistics()}
               >
-                <MenuItem value="Default">Default</MenuItem>
-                <MenuItem value="Fixed Position">Fixed Position</MenuItem>
-              </Select>
-            </FormControl>
+                Search sessions
+              </Button>
+
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+                <Button
+                variant="contained"
+                disabled={
+                  exporting ||
+                  !beginDate ||
+                  !endDate ||
+                  endDate < beginDate ||
+                  !mode ||
+                  !level
+                }
+                onClick={handleExportPDF}
+                sx={{ minWidth: 150, fontWeight: 'bold', boxShadow: 2 }}
+                >
+                {exporting ? 'Exporting...' : 'Export as PDF'}
+                </Button>
+            </Box>
+
           </Box>
 
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>Difficulty</Typography>
-            <FormControl sx={{ width: 200 }}>
-              <Select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-              >
-                <MenuItem value="Beginner">Beginner</MenuItem>
-                <MenuItem value="Intermediate">Intermediate</MenuItem>
-                <MenuItem value="Expert">Expert</MenuItem>
-                <MenuItem value="Progressive">Progressive I</MenuItem>
-                <MenuItem value="Progressive2">Progressive II</MenuItem>
-                <MenuItem value="PerTime">PerTime</MenuItem>
-                <MenuItem value="LightsReaction">Lights Reaction I</MenuItem>
-                <MenuItem value="LightsReaction2">Lights Reaction II</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+          {noSessions ? (
+            <Typography variant="body1" align='center' color="error" sx={{
+              backgroundColor: '#fce4ec',
+              border: '1px solid #f8bbd0',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '24px',
+              fontWeight: 600,
+              boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+            }}>No sessions were found for the selected date range.</Typography>
+          ) : loading ? (
+            <Typography variant="body2" align="center" color="textSecondary">Select a range of dates...</Typography>
+          ) : (
+            <Grid container spacing={4}>
+              <Grid item xs={12} md={9}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
 
-          <Box>
-            <Button variant="contained"
-              disabled={!beginDate || !endDate || endDate < beginDate || !mode || !level}
-              onClick={() => handleStatistics()}
-            >
-              Search sessions
-            </Button>
-          </Box>
-        </Box>
+                  {(level !== "LightsReaction" && level !== "LightsReaction2") && (
+                    <>
+                      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1 }}>
+                          <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                            <Typography variant="h6" gutterBottom align="center">Nº of saves per session</Typography>
+                            <Box sx={{
+                              width: '100%',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center'
+                            }}>
+                              {progressSavesGraphURL ? (
+                                <img src={progressSavesGraphURL} alt="Progress Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                              ) : (
+                                <Typography variant="body2" color="textSecondary">
+                                  Loading progress graph...
+                                </Typography>
+                              )}
+                            </Box>
+                          </Paper>
+                        </Box>
 
-        {noSessions ? (
-          <Typography variant="body1" align='center' color="error" sx={{
-            backgroundColor: '#fce4ec',
-            border: '1px solid #f8bbd0',
-            borderRadius: '8px',
-            padding: '12px 16px',
-            marginBottom: '24px',
-            fontWeight: 600,
-            boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-          }}>No sessions were found for the selected date range.</Typography>
-        ) : loading ? (
-          <Typography variant="body2" align="center" color="textSecondary">Select a range of dates...</Typography>
-        ) : (
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={9}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, justifyContent: 'center', width: '100%' }}>
-
-                {(level !== "LightsReaction" && level !== "LightsReaction2") && (
-                  <>
-                    <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '135%' }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1 }}>
-                        <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom align="center">Nº of saves per session</Typography>
-                          <Box sx={{
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                          }}>
-                            {progressSavesGraphURL ? (
-                              <img src={progressSavesGraphURL} alt="Progress Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                            ) : (
-                              <Typography variant="body2" color="textSecondary">
-                                Loading progress graph...
-                              </Typography>
-                            )}
-                          </Box>
-                        </Paper>
-                      </Box>
-
-                      {/* {(level !== "PerTime") && ( 
+                        {/* {(level !== "PerTime") && ( 
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
                           <Paper sx={{ p: 2, width: '100%' }}>
                             <Typography variant="h6" gutterBottom>Time per session</Typography>
@@ -255,62 +285,71 @@ const PlayerProgress = (): JSX.Element => {
                         </Box>
                       )}*/}
 
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1 }}>
-                        <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                          <Typography variant="h6" gutterBottom align='center'>Heatmap of total shots</Typography>
-                          <Box sx={{
-                            position: 'relative',
-                            backgroundSize: 'contain',
-                            paddingBottom: '56.25%', // 16:9 aspect ratio
-                            backgroundPosition: 'center',
-                            backgroundRepeat: 'no-repeat',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            overflow: 'hidden',
-                          }}>
-                            <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
-                            {heatmapURL ? (
-                              <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
-                            ) : (
-                              <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
-                            )}
-                          </Box>
-                        </Paper>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, flex: 1 }}>
+                          <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                            <Typography variant="h6" gutterBottom align='center'>Heatmap of total shots</Typography>
+                            <Box sx={{
+                              position: 'relative',
+                              backgroundSize: 'contain',
+                              paddingBottom: '56.25%', // 16:9 aspect ratio
+                              backgroundPosition: 'center',
+                              backgroundRepeat: 'no-repeat',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              overflow: 'hidden',
+                            }}>
+                              <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: "100%", height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                              {heatmapURL ? (
+                                <img src={heatmapURL} alt="Heat Map" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
+                              ) : (
+                                <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                              )}
+                            </Box>
+                          </Paper>
+                        </Box>
                       </Box>
-                    </Box>
-                  </>
-                )}
-              </Box>
+                    </>
+                  )}
+                </Box>
+              </Grid>
             </Grid>
-          </Grid>
-        )}
+          )}
 
-        {(level === "LightsReaction" || level === "LightsReaction2") && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, justifyContent: 'center', width: '100%' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '100%', justifyContent: 'center' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
-                <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
-                  <Typography variant="h6" gutterBottom align="center">Nº of lights touched per session</Typography>
-                  <Box sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}>
-                    {progressLightsGraphURL ? (
-                      <img src={progressLightsGraphURL} alt="Progress Lights Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        Loading progress graph...
-                      </Typography>
-                    )}
-                  </Box>
-                </Paper>
+          {(level === "LightsReaction" || level === "LightsReaction2") && (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, justifyContent: 'center', width: '100%' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, width: '100%', justifyContent: 'center' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2 }}>
+                  <Paper sx={{ p: 2, flex: 1, width: '100%' }}>
+                    <Typography variant="h6" gutterBottom align="center">Nº of lights touched per session</Typography>
+                    <Box sx={{
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
+                      {progressLightsGraphURL ? (
+                        <img src={progressLightsGraphURL} alt="Progress Lights Graph" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                      ) : (
+                        <Typography variant="body2" color="textSecondary">
+                          Loading progress graph...
+                        </Typography>
+                      )}
+                    </Box>
+                  </Paper>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        )}
+          )}
+        </Box>
       </Container>
+
+      <Backdrop
+        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={exporting}
+      >
+        <CircularProgress />
+      </Backdrop>
+
     </Box >
   );
 };

@@ -1,12 +1,16 @@
-export const formatDate = (dateString: string) => {
-  return dateString.replace('T', ' ');
-};
 
 import { Box, Avatar, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from '@mui/material';
 import { Session } from '../types/session';
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+import { useState } from 'react';
 
 export const baseURL = 'https://gkstatsweb.duckdns.org:12345';//'https://192.168.43.173:12345';
 export const streamingURL = 'wss://gkstatsweb.duckdns.org:12345/webrtc-signaling';
+
+export const formatDate = (dateString: string) => {
+  return dateString.replace('T', ' ');
+};
 
 export const PlayerTable = ({
   playerName,
@@ -70,4 +74,49 @@ export const PlayerTable = ({
       )}
     </Box>
   );
+};
+
+export const PDFExporter = () => {
+    const [exporting, setExporting] = useState(false);
+
+    const exportPDF = async (element: HTMLElement, filename = 'export.pdf') => {
+        if (!element) return;
+
+        setExporting(true);
+        try {
+            const canvas = await html2canvas(element, {
+                useCORS: true,
+                allowTaint: true,
+                scale: 2
+            });
+
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+
+            const canvasWidth = canvas.width;
+            const canvasHeight = canvas.height;
+            const imgHeight = (canvasHeight * pdfWidth) / canvasWidth;
+
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pdfHeight;
+
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
+                heightLeft -= pdfHeight;
+            }
+
+            pdf.save(filename);
+        } finally {
+            setExporting(false);
+        }
+    };
+
+    return { exporting, exportPDF };
 };

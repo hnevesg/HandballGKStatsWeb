@@ -219,10 +219,8 @@ def get_players(team_id: int = Query(None)):
     """Función para obtener la lista de jugadores."""
     session = SessionLocal()
     if team_id is not None:
-        print("not hereeeeeee")
         players = session.query(User).filter(User.role == Rol.PORTERO.value, User.teamID == team_id).all()
     else:
-        print("hereeeeeeeeeeeEEEEEEEEEE")
         players = session.query(User).filter(User.role == Rol.PORTERO.value).all()
     session.close()
     return players
@@ -855,7 +853,6 @@ def get_reaction_speed_times(session_date: str):
         ax.plot(range(1, lights+1), reaction_speed, label='Time between light was turned on and touched', color='blue', marker='o', linestyle='-')
         ax.set_ylim(0, max(reaction_speed)+1)
         ax.set_ylabel('Reaction Speed')
-    # ax.set_xticks(range(1, lights+1))
         ax.xaxis.set_major_locator(MaxNLocator(integer=True))
         ax.set_xlabel('Nº of touched lights')
         ax.legend()
@@ -886,7 +883,6 @@ def get_reaction_speed_sequence(session_date: str):
         
         ax.scatter(secuencia_tiempos, secuencia_luces, color='blue', alpha=0.7)
         ax.set_title('Interactivity Over Time (Touched Lights)')
-#        ax.set_ylim(0, max(secuencia_luces)+1)
         ax.set_xlabel('Time (s)')
         ax.set_ylabel('Light ID (0 = left, 8 = right)')
         ax.set_yticks(range(0, 9))

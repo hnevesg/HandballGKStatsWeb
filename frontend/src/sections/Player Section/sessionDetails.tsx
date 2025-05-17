@@ -1,17 +1,16 @@
 import {
-    Box, Container, Typography, Paper, Grid, IconButton, Avatar,
+    Backdrop, Box, Button, CircularProgress, Container, Typography, Paper, Grid, IconButton, Avatar,
     TableContainer, Table, TableCell, TableHead, TableRow, TableBody,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLocation } from 'wouter';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Session } from '../../types/session';
 import { User } from '../../types/user';
 import { SessionData } from '../../types/sessionData';
 import { SessionTracking } from '../../types/sessionTracking';
 import Navbar from '../../components/navBar';
-import { formatDate } from '../../components/utils';
-import { baseURL } from '../../components/utils';
+import { baseURL, formatDate, PDFExporter } from '../../components/utils';
 
 const SessionDetails = (): JSX.Element => {
     const [, navigate] = useLocation();
@@ -31,6 +30,8 @@ const SessionDetails = (): JSX.Element => {
     const [RhandSpeed, setRhandSpeed] = useState<number>()
     const [savesPercentage, setSavesPercentage] = useState<number>()
     const [loggedUser, setLoggedUser] = useState<User | null>(null);
+    const pdfRef = useRef<HTMLDivElement>(null);
+    const { exporting, exportPDF } = PDFExporter();
 
     const getSessionData = async () => {
         if (!session) return;
@@ -162,6 +163,15 @@ const SessionDetails = (): JSX.Element => {
         return Array.from(uniqueZones).join(',');
     };
 
+    const handleExportPDF = () => {
+        if (pdfRef.current) {
+            const playerName = player?.name ? player.name.replace(/\s+/g, '') : 'player';
+            const sessionDate = session?.date ? formatDate(session.date).replace(/[: ]/g, '_') : 'date';
+            const fileName = `session-details_${playerName}_${sessionDate}.pdf`;
+            exportPDF(pdfRef.current, fileName);
+        }
+    };
+
     return (
         <Box>
             <Navbar user={loggedUser} />
@@ -173,239 +183,259 @@ const SessionDetails = (): JSX.Element => {
                     >
                         <ArrowBackIcon />
                     </IconButton>
+
                     <Typography variant="h4" align="center" sx={{ width: '100%' }}>Statistics</Typography>
+
+                    <Button
+                        variant="contained"
+                        disabled={exporting}
+                        onClick={handleExportPDF}
+                        sx={{ ml: 2, minWidth: 150, fontWeight: 'bold', boxShadow: 2 }}
+                    >
+                        {exporting ? 'Exporting...' : 'Export as PDF'}
+                    </Button>
                 </Box>
+                
+                <Box ref={pdfRef}>
+                    <Grid container spacing={4}>
+                        {/* Left Column - Player Info and Session Details */}
+                        <Grid item xs={12} md={3}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                                <Box sx={{ display: 'flex', alignItems: "center", gap: 2 }}>
+                                    <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
+                                    <Typography variant="h6">{player?.name}</Typography>
+                                </Box>
 
-                <Grid container spacing={4}>
-                    {/* Left Column - Player Info and Session Details */}
-                    <Grid item xs={12} md={3}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <Box sx={{ display: 'flex', alignItems: "center", gap: 2 }}>
-                                <Avatar sx={{ width: 60, height: 60, bgcolor: '#00CED1' }} />
-                                <Typography variant="h6">{player?.name}</Typography>
-                            </Box>
-
-                            <Paper sx={{ p: 2 }}>
-                                {session ? (
-                                    <>
-                                        <Typography variant="subtitle2" gutterBottom>Session Date: {formatDate(session.date)}</Typography>
-                                        {(session?.prestige_level !== "LightsReaction" && session?.prestige_level !== "LightsReaction2") && (
-                                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                                                <Typography variant="subtitle2" sx={{ wordBreak: 'break-word' }}>• From: {(getUniqueInitialZones() as string).replace(/,/g, ', ')}</Typography>
-                                            </Box>
-                                        )}
-                                        <Box sx={{ mt: 2 }}>
-                                            <Typography>Configuration</Typography>
-                                            <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
-                                            <Typography variant="subtitle2">• Difficulty: <strong>{session?.prestige_level}</strong></Typography>
-                                            {/*              <Typography variant="subtitle2">• Model size: {sessionData.configuration.modelSize}</Typography> */}
-                                        </Box>
-                                    </>
-                                ) : (
-                                    <Typography variant="body2" color="textSecondary">Loading data...</Typography>
-                                )}
-                            </Paper>
-                        </Box>
-                    </Grid>
-                    <Grid item xs={12} md={9}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', }}>
-
-                            {(session?.prestige_level === "LightsReaction" || session?.prestige_level === "LightsReaction2") && (
-                                <>
-                                    {/* Metric 3 - Summary Table */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
-                                            <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
-                                                <Table>
-                                                    <TableHead>
-                                                        <TableRow>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>Data</TableCell>
-                                                        </TableRow>
-                                                    </TableHead>
-                                                    <TableBody>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
-                                                            <TableCell align="center">{parseInt(sessionData?.session_time || '0')}s</TableCell>
-                                                        </TableRow>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Nº of Lights</b></TableCell>
-                                                            <TableCell align="center">{sessionData?.n_lights}</TableCell>
-                                                        </TableRow>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}m/s</TableCell>
-                                                        </TableRow>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}m/s</TableCell>
-                                                        </TableRow>
-                                                    </TableBody>
-                                                </Table>
-                                            </TableContainer>
-                                        </Paper>
-                                    </Box>
-                                    {/* Metric - Linear Time Plot */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            {plotReactionTimesURL ? (
-                                                <img id={`reaction-speed-${session?.id}`} src={plotReactionTimesURL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                            ) : (
-                                                <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                <Paper sx={{ p: 2 }}>
+                                    {session ? (
+                                        <>
+                                            <Typography variant="subtitle2" gutterBottom>Session Date: {formatDate(session.date)}</Typography>
+                                            {(session?.prestige_level !== "LightsReaction" && session?.prestige_level !== "LightsReaction2") && (
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                                                    <Typography variant="subtitle2" sx={{ wordBreak: 'break-word' }}>• From: {(getUniqueInitialZones() as string).replace(/,/g, ', ')}</Typography>
+                                                </Box>
                                             )}
-                                        </Paper>
-                                    </Box>
-                                    {/* Metric - Lights Sequence Plot */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            {plotReactionSequenceURL ? (
-                                                <img id={`reaction-speed-${session?.id}`} src={plotReactionSequenceURL} alt="Plot of reaction speed lights sequence" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                            ) : (
-                                                <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
-                                            )}
-                                        </Paper>
-                                    </Box>
-                                    {/* Metric - Lights Sequence Animation */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            {plotReactionAnimationURL ? (
-                                                <img
-                                                    id={`reaction-speed-animation-${session?.id}`}
-                                                    src={plotReactionAnimationURL}
-                                                    alt="Reaction speed animation"
-                                                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                                                />
-                                            ) : (
-                                                <Typography variant="body2" color="textSecondary">Loading animation...</Typography>
-                                            )}
-                                        </Paper>
-                                    </Box>
-                                </>
-                            )}
-                            {(session?.prestige_level !== "LightsReaction" && session?.prestige_level !== "LightsReaction2") && (
-                                <>
-                                    {/* Metric 1 - Bar Chart */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ flex: 1, p: 3, minWidth: { xs: '100%', md: '45%' } }}>
-                                            <Typography variant="h6" gutterBottom align="center">Bar Chart of Shoots</Typography>
-                                            <Box sx={{
-                                                width: '100%',
-                                                display: 'flex',
-                                                justifyContent: "center",
-                                                alignItems: "center"
-                                            }}>
-                                                {barchartShootsURL ? (
-                                                    <img src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                                ) : (
-                                                    <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
-                                                )}
+                                            <Box sx={{ mt: 2 }}>
+                                                <Typography>Configuration</Typography>
+                                                <Typography variant="subtitle2">• Game mode: {session?.game_mode}</Typography>
+                                                <Typography variant="subtitle2">• Difficulty: <strong>{session?.prestige_level}</strong></Typography>
+                                                {/*              <Typography variant="subtitle2">• Model size: {sessionData.configuration.modelSize}</Typography> */}
                                             </Box>
-                                        </Paper>
-                                    </Box>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ flex: 1, p: 3, minWidth: { xs: '100%', md: '45%' } }}>
-                                            <Typography variant="h6" gutterBottom align="center">Bar Chart of Saves per Bodypart</Typography>
-                                            <Box sx={{
-                                                width: '100%',
-                                                display: 'flex',
-                                                justifyContent: "center",
-                                                alignItems: "center"
-                                            }}>
-                                                {barchartSavesURL ? (
-                                                    <img src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                                ) : (
-                                                    <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
-                                                )}
-                                            </Box>
-                                        </Paper>
-                                    </Box>
-                                    {/* Metric 2 - HeatMap */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            <Typography variant="h6" gutterBottom align="center">Heat Map of Goal Zones</Typography>
-                                            <Box sx={{
-                                                position: 'relative',
-                                                backgroundSize: 'contain',
-                                                paddingBottom: '56.25%', // 16:9 aspect ratio
-                                                backgroundPosition: "center",
-                                                backgroundRepeat: 'no-repeat',
-                                                alignItems: "center",
-                                                justifyContent: "center"
-                                            }}>
-                                                <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
-                                                {heatmapURL ? (
-                                                    <img src={heatmapURL} alt="Heatmap" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
-                                                ) : (
-                                                    <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
-                                                )}
-                                            </Box>
-                                        </Paper>
-                                    </Box>
-
-                                    {/* Metric 3 - Summary Table */}
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
-                                            <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
-                                            <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
-                                                <Table>
-                                                    <TableHead>
-                                                        <TableRow>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
-                                                            <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>Data</TableCell>
-                                                        </TableRow>
-                                                    </TableHead>
-                                                    <TableBody>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
-                                                            <TableCell align="center">{parseInt(sessionData?.session_time || '0')}s</TableCell>
-                                                        </TableRow>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Saves Percentage</b></TableCell>
-                                                            <TableCell align="center">{savesPercentage}%</TableCell>
-                                                        </TableRow>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{LhandSpeed?.toFixed(3)}m/s</TableCell>
-                                                        </TableRow>
-                                                        <TableRow>
-                                                            <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
-                                                            <TableCell align="center">{RhandSpeed?.toFixed(3)}m/s</TableCell>
-                                                        </TableRow>
-                                                    </TableBody>
-                                                </Table>
-                                            </TableContainer>
-                                        </Paper>
-                                    </Box>
-
-                                </>
-                            )}
-                            {/* Metric 4 - Scatter Plot */}
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                <Paper sx={{ display: 'flex', flexDirection: 'row', gap: 2, p: 2, width: '100%' }}>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        {scatterplot2DPositionsURL ? (
-                                            <img src={scatterplot2DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                        ) : (
-                                            <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
-                                        )}
-                                    </Box>
-                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                                        {scatterplot3DPositionsURL ? (
-                                            <img src={scatterplot3DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                                        ) : (
-                                            <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
-                                        )}
-                                    </Box>
+                                        </>
+                                    ) : (
+                                        <Typography variant="body2" color="textSecondary">Loading data...</Typography>
+                                    )}
                                 </Paper>
                             </Box>
-                            <Box>
+                        </Grid>
+                        <Grid item xs={12} md={9}>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, width: '100%', }}>
+
+                                {(session?.prestige_level === "LightsReaction" || session?.prestige_level === "LightsReaction2") && (
+                                    <>
+                                        {/* Metric 3 - Summary Table */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                                <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
+                                                <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
+                                                    <Table>
+                                                        <TableHead>
+                                                            <TableRow>
+                                                                <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
+                                                                <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>Data</TableCell>
+                                                            </TableRow>
+                                                        </TableHead>
+                                                        <TableBody>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
+                                                                <TableCell align="center">{parseInt(sessionData?.session_time || '0')}s</TableCell>
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Nº of Lights</b></TableCell>
+                                                                <TableCell align="center">{sessionData?.n_lights}</TableCell>
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
+                                                                <TableCell align="center">{LhandSpeed?.toFixed(3)}m/s</TableCell>
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
+                                                                <TableCell align="center">{RhandSpeed?.toFixed(3)}m/s</TableCell>
+                                                            </TableRow>
+                                                        </TableBody>
+                                                    </Table>
+                                                </TableContainer>
+                                            </Paper>
+                                        </Box>
+                                        {/* Metric - Linear Time Plot */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                                {plotReactionTimesURL ? (
+                                                    <img id={`reaction-speed-${session?.id}`} src={plotReactionTimesURL} alt="Plot of reaction speed" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                                )}
+                                            </Paper>
+                                        </Box>
+                                        {/* Metric - Lights Sequence Plot */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                                {plotReactionSequenceURL ? (
+                                                    <img id={`reaction-speed-${session?.id}`} src={plotReactionSequenceURL} alt="Plot of reaction speed lights sequence" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                ) : (
+                                                    <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
+                                                )}
+                                            </Paper>
+                                        </Box>
+                                        {/* Metric - Lights Sequence Animation */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                                {plotReactionAnimationURL ? (
+                                                    <img
+                                                        id={`reaction-speed-animation-${session?.id}`}
+                                                        src={plotReactionAnimationURL}
+                                                        alt="Reaction speed animation"
+                                                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                                                    />
+                                                ) : (
+                                                    <Typography variant="body2" color="textSecondary">Loading animation...</Typography>
+                                                )}
+                                            </Paper>
+                                        </Box>
+                                    </>
+                                )}
+                                {(session?.prestige_level !== "LightsReaction" && session?.prestige_level !== "LightsReaction2") && (
+                                    <>
+                                        {/* Metric 1 - Bar Chart */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ flex: 1, p: 3, minWidth: { xs: '100%', md: '45%' } }}>
+                                                <Typography variant="h6" gutterBottom align="center">Bar Chart of Shoots</Typography>
+                                                <Box sx={{
+                                                    width: '100%',
+                                                    display: 'flex',
+                                                    justifyContent: "center",
+                                                    alignItems: "center"
+                                                }}>
+                                                    {barchartShootsURL ? (
+                                                        <img src={barchartShootsURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
+                                                    )}
+                                                </Box>
+                                            </Paper>
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ flex: 1, p: 3, minWidth: { xs: '100%', md: '45%' } }}>
+                                                <Typography variant="h6" gutterBottom align="center">Bar Chart of Saves per Bodypart</Typography>
+                                                <Box sx={{
+                                                    width: '100%',
+                                                    display: 'flex',
+                                                    justifyContent: "center",
+                                                    alignItems: "center"
+                                                }}>
+                                                    {barchartSavesURL ? (
+                                                        <img src={barchartSavesURL} alt="Bar Chart" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                                    ) : (
+                                                        <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
+                                                    )}
+                                                </Box>
+                                            </Paper>
+                                        </Box>
+                                        {/* Metric 2 - HeatMap */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                                <Typography variant="h6" gutterBottom align="center">Heat Map of Goal Zones</Typography>
+                                                <Box sx={{
+                                                    position: 'relative',
+                                                    backgroundSize: 'contain',
+                                                    paddingBottom: '56.25%', // 16:9 aspect ratio
+                                                    backgroundPosition: "center",
+                                                    backgroundRepeat: 'no-repeat',
+                                                    alignItems: "center",
+                                                    justifyContent: "center"
+                                                }}>
+                                                    <img src="/porteria.png" alt="Portería" style={{ position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                                                    {heatmapURL ? (
+                                                        <img src={heatmapURL} alt="Heatmap" style={{ position: 'absolute', width: '100%', height: '67.8%', top: '5%', objectFit: 'contain', zIndex: 2 }} />
+                                                    ) : (
+                                                        <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                                                    )}
+                                                </Box>
+                                            </Paper>
+                                        </Box>
+
+                                        {/* Metric 3 - Summary Table */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
+                                                <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
+                                                <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
+                                                    <Table>
+                                                        <TableHead>
+                                                            <TableRow>
+                                                                <TableCell align="center" sx={{ borderBottom: '1px solid black', borderRight: '1px solid black' }}>Metric</TableCell>
+                                                                <TableCell align="center" sx={{ borderBottom: '1px solid black' }}>Data</TableCell>
+                                                            </TableRow>
+                                                        </TableHead>
+                                                        <TableBody>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Session Duration</b></TableCell>
+                                                                <TableCell align="center">{parseInt(sessionData?.session_time || '0')}s</TableCell>
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Saves Percentage</b></TableCell>
+                                                                <TableCell align="center">{savesPercentage}%</TableCell>
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Left Hand Speed</b></TableCell>
+                                                                <TableCell align="center">{LhandSpeed?.toFixed(3)}m/s</TableCell>
+                                                            </TableRow>
+                                                            <TableRow>
+                                                                <TableCell component="th" scope="row" align="center" sx={{ borderRight: '1px solid black' }}><b>Right Hand Speed</b></TableCell>
+                                                                <TableCell align="center">{RhandSpeed?.toFixed(3)}m/s</TableCell>
+                                                            </TableRow>
+                                                        </TableBody>
+                                                    </Table>
+                                                </TableContainer>
+                                            </Paper>
+                                        </Box>
+
+                                    </>
+                                )}
+                                {/* Metric 4 - Scatter Plot */}
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                    <Paper sx={{ display: 'flex', flexDirection: 'row', gap: 2, p: 2, width: '100%' }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            {scatterplot2DPositionsURL ? (
+                                                <img src={scatterplot2DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
+                                            )}
+                                        </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                                            {scatterplot3DPositionsURL ? (
+                                                <img src={scatterplot3DPositionsURL} alt="Scatter plot of positions" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">Loading scatter plot...</Typography>
+                                            )}
+                                        </Box>
+                                    </Paper>
+                                </Box>
+                                <Box>
+                                </Box>
                             </Box>
-                        </Box>
+                        </Grid>
                     </Grid>
-                </Grid>
-            </Container >
-        </Box >
+                </Box>
+            </Container>
+
+            <Backdrop
+                sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
+                open={exporting}
+            >
+                <CircularProgress />
+            </Backdrop>
+
+        </Box>
     );
 };
 
