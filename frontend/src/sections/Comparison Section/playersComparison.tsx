@@ -1,22 +1,13 @@
-import {
-  Box,
-  Container,
-  Typography,
-  TextField,
-  Button,
-  Avatar,
-  IconButton
-} from '@mui/material';
+import { Box, Container, Typography, TextField, Button, Avatar, IconButton, Tooltip } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useState, useMemo, useEffect } from 'react';
-import Navbar from '../../components/navBar';
 import { useLocation } from 'wouter';
+import { User } from '../../types/user';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-import { User } from '../../types/user';
+import Navbar from '../../components/navBar';
 import { Rol } from '../../types/rol';
 import { baseURL } from '../../components/utils';
-
 
 const PlayersComparison = (): JSX.Element => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -204,6 +195,7 @@ const PlayersComparison = (): JSX.Element => {
             }}
           >
             {getCurrentPagePlayers.map((player, index) => (
+              <Tooltip title={player.name} arrow key={`${player.id}-${currentPage}-${index}`}>            
               <IconButton
                 key={`${player.id}-${currentPage}-${index}`}
                 onClick={() => handlePlayerSelect(player)}
@@ -228,6 +220,7 @@ const PlayersComparison = (): JSX.Element => {
                   {player.avatar}
                 </Avatar>
               </IconButton>
+            </Tooltip>              
             ))}
           </Box>
 
