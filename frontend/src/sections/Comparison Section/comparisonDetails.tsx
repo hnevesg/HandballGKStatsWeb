@@ -1,6 +1,6 @@
 import {
   Backdrop, Box, Button, CircularProgress, Container, Typography, Avatar, IconButton, Paper,
-  TableContainer, Table, TableCell, TableHead, TableRow, TableBody,
+  TableContainer, Table, TableCell, TableHead, TableRow, TableBody, Grid, useMediaQuery, useTheme,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useLocation } from 'wouter';
@@ -34,6 +34,8 @@ const ComparisonDetails = (): JSX.Element => {
   const [sessionDataP2, setSessionDataP2] = useState<SessionData | null>();
   const pdfRef = useRef<HTMLDivElement>(null);
   const { exporting, exportPDF } = PDFExporter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     const state = window.history.state;
@@ -177,7 +179,7 @@ const ComparisonDetails = (): JSX.Element => {
       <Navbar user={loggedUser} />
       <Container maxWidth="lg" sx={{ mt: 4 }}>
 
-        <Box sx={{ display: 'flex', alignItems: "center", mb: 6 }}>
+        <Box sx={{ display: 'flex', alignItems: "center", mb: 4, mt: 2, ml: -3 }}>
           <IconButton
             onClick={goBack}
             sx={{ mr: 2 }}
@@ -190,7 +192,15 @@ const ComparisonDetails = (): JSX.Element => {
             variant="contained"
             disabled={exporting}
             onClick={handleExportPDF}
-            sx={{ minWidth: 150, fontWeight: 'bold', boxShadow: 2 }}
+            sx={{
+              ml: 2,
+              minWidth: { xs: 100, sm: 150 },
+              fontWeight: 'bold',
+              boxShadow: 2,
+              fontSize: { xs: '0.8rem', sm: '1rem' },
+              py: { xs: 0.5, sm: 1 },
+              px: { xs: 1, sm: 2 }
+            }}
           >
             {exporting ? 'Exporting...' : 'Export as PDF'}
           </Button>
@@ -198,19 +208,21 @@ const ComparisonDetails = (): JSX.Element => {
 
         <Box ref={pdfRef}>
           <Container maxWidth="lg" sx={{ position: 'relative' }} >
-            {/* Rectangle with session info */}
+            {/* Rectangle with sessions info */}
             <Box
               sx={{
-                position: 'absolute',
-                left: 24,
-                zIndex: 10,
-                minWidth: 250,
-                bgcolor: 'background.paper',
-                borderRadius: 2,
+                width: { xs: '100%', sm: 300 },
+                minWidth: 0,
+                mx: { xs: 0, sm: 2 },
+                mb: { xs: 2, sm: 0 },
+                position: 'static',
                 boxShadow: 3,
+                borderRadius: 2,
                 p: 2,
+                bgcolor: 'background.paper'
               }}
             >
+
               <Typography variant="subtitle2" color="text.secondary" align='center'>
                 Sessions Details
               </Typography>
@@ -278,18 +290,12 @@ const ComparisonDetails = (): JSX.Element => {
             </Box>
           </Container>
 
-
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
-
-              {(session1?.prestige_level !== "LightsReaction" && session1?.prestige_level !== "LightsReaction2") && (
-                <>
-                  {/* Métrica 1 */}
-                  < Paper sx={{ flex: 1, p: 3 }}>
+          <Grid container spacing={2} justifyContent={"center"} >
+            {(session1?.prestige_level !== "LightsReaction" && session1?.prestige_level !== "LightsReaction2") && (
+              <>
+                {/* Métrica 1 */}
+                <Grid item xs={12} md={6}>
+                  <Paper sx={{ flex: 1, p: 3 }}>
                     <Typography variant="h6" gutterBottom align="center">Summary of Shoots</Typography>
                     <Box sx={{
                       width: '100%',
@@ -298,18 +304,21 @@ const ComparisonDetails = (): JSX.Element => {
                       alignItems: "center"
                     }}>
                       {barchartURL ? (
-                        <img src={barchartURL} alt="barchart" style={{ width: '100%', objectFit: 'contain' }} />
+                        <img src={barchartURL} alt="barchart" style={{ width: '100%', maxWidth: '500px', objectFit: 'contain' }} />
                       ) : (
                         <Typography variant="body2" color="textSecondary">Loading bar chart...</Typography>
                       )}
                     </Box>
                   </Paper>
-                </>
-              )}
+                </Grid>
+              </>
+            )}
 
-              {/* Métrica 2 */}
-              <Paper sx={{ flex: 1, p: 3 }}>
+            {/* Métrica 2 */}
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ flex: 1, p: 3, height: '100%' }}>
                 <Typography variant="h6" gutterBottom align="center">Summary of Data</Typography>
+                <Box sx={{ maxWidth: 500, mt: 6, mx: 'auto' }}>
                 <TableContainer component={Paper} sx={{ border: '1px solid black' }}>
                   <Table>
                     <TableHead>
@@ -347,60 +356,114 @@ const ComparisonDetails = (): JSX.Element => {
                     </TableBody>
                   </Table>
                 </TableContainer>
+               </Box> 
               </Paper>
-            </Box>
+            </Grid>
+          </Grid>
 
-            {(session1?.prestige_level !== "LightsReaction" && session1?.prestige_level !== "LightsReaction2") && (
-              <>
-
-                {/* Métrica 3 */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+            <Grid container spacing={2} mt={1}>
+              {(session1?.prestige_level !== "LightsReaction" && session1?.prestige_level !== "LightsReaction2") && (
+                <Grid item xs={12} >
                   <Paper sx={{ flex: 1, p: 3 }}>
-                    <Typography variant="h6" gutterBottom align="center"> Heat Maps</Typography>
-                    <Box sx={{
-                      display: 'flex',
-                      justifyContent: "center",
-                      alignItems: "center",
-                      gap: 4
-                    }}>
+                    <Typography variant="h6" gutterBottom align="center">Heat Maps</Typography>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: isMobile ? 'column' : 'row',
+                        justifyContent: 'center',
+                        alignItems: 'stretch',
+                        gap: 2,
+                      }}
+                    >
                       {/* Player 1 Heatmap */}
-                      <Box sx={{ textAlign: "center", flex: 1 }}>
+                      <Box sx={{ textAlign: 'center', flex: 1 }}>
                         <Typography variant="subtitle2" gutterBottom>
                           {player1?.name}
                         </Typography>
                         <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
-                          <img src="/porteria.png" alt="Portería" style={{ inset: 0, position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                          <img
+                            src="/porteria.png"
+                            alt="Portería"
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              width: '100%',
+                              height: '86%',
+                              objectFit: 'contain',
+                              zIndex: 1,
+                            }}
+                          />
                           {heatmapP1URL ? (
-                            <img src={heatmapP1URL} alt="Player 1 Heat Map" style={{ inset: 0, position: 'absolute', width: '100%', height: '67.8%', objectFit: 'contain', zIndex: 2, top: '5%' }} />
+                            <img
+                              src={heatmapP1URL}
+                              alt="Player 1 Heat Map"
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                width: '100%',
+                                height: '67.8%',
+                                objectFit: 'contain',
+                                zIndex: 2,
+                                top: '5%',
+                              }}
+                            />
                           ) : (
-                            <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              Loading heat map...
+                            </Typography>
                           )}
                         </Box>
                       </Box>
+
                       {/* Player 2 Heatmap */}
-                      <Box sx={{ textAlign: "center", flex: 1 }}>
+                      <Box sx={{ textAlign: 'center', flex: 1 }}>
                         <Typography variant="subtitle2" gutterBottom>
                           {player2?.name}
                         </Typography>
                         <Box sx={{ position: 'relative', width: '100%', paddingBottom: '56.25%' }}>
-                          <img src="/porteria.png" alt="Portería" style={{ inset: 0, position: 'absolute', width: '100%', height: '86%', objectFit: 'contain', zIndex: 1 }} />
+                          <img
+                            src="/porteria.png"
+                            alt="Portería"
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              width: '100%',
+                              height: '86%',
+                              objectFit: 'contain',
+                              zIndex: 1,
+                            }}
+                          />
                           {heatmapP2URL ? (
-                            <img src={heatmapP2URL} alt="Player 2 Heat Map" style={{ inset: 0, position: 'absolute', objectFit: 'contain', width: '100%', height: '67.8%', zIndex: 2, top: '5%' }} />
+                            <img
+                              src={heatmapP2URL}
+                              alt="Player 2 Heat Map"
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                width: '100%',
+                                height: '67.8%',
+                                objectFit: 'contain',
+                                zIndex: 2,
+                                top: '5%',
+                              }}
+                            />
                           ) : (
-                            <Typography variant="body2" color="textSecondary">Loading heat map...</Typography>
+                            <Typography variant="body2" color="textSecondary">
+                              Loading heat map...
+                            </Typography>
                           )}
                         </Box>
                       </Box>
                     </Box>
                   </Paper>
-                </Box>
-              </>
-            )}
+                </Grid>
+              )}
+            </Grid>
 
-            {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+            <Grid container xs={12} spacing={-4}>
+              {(session1?.prestige_level === "LightsReaction" || session1?.prestige_level === "LightsReaction2") && (
+                <>
+                  <Grid item xs={12} md={isMobile ? 0 : 5.5} mr={isMobile ? 0 : 1} ml={isMobile ? -2 : 0} mt={isMobile ? -2 : 0}>
                     <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                       <Typography variant="subtitle2" gutterBottom align="center">
                         {player1?.name}
@@ -411,9 +474,9 @@ const ComparisonDetails = (): JSX.Element => {
                         <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
                       )}
                     </Paper>
-                  </Box>
+                  </Grid>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
+                  <Grid item xs={12} md={isMobile ? 0 : 5.5} ml={isMobile ? -2 : 1} mt={isMobile ? 2 : 0}>
                     <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
                       <Typography variant="subtitle2" gutterBottom align="center">
                         {player2?.name}
@@ -424,11 +487,10 @@ const ComparisonDetails = (): JSX.Element => {
                         <Typography variant="body2" color="textSecondary">Loading plot...</Typography>
                       )}
                     </Paper>
-                  </Box>
-                </Box>
-              </>
-            )}
-          </Box>
+                  </Grid>
+                </>
+              )}
+            </Grid>
         </Box>
       </Container>
 
@@ -439,7 +501,7 @@ const ComparisonDetails = (): JSX.Element => {
         <CircularProgress />
       </Backdrop>
 
-    </Box>
+    </Box >
   );
 };
 

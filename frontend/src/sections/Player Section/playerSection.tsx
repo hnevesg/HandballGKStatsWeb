@@ -1,4 +1,4 @@
-import { Box, Container, Typography, TextField, Button, Avatar, IconButton, Tooltip } from '@mui/material';
+import { Box, Container, Typography, TextField, Button, Avatar, IconButton, Tooltip, useMediaQuery, useTheme } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter'
@@ -17,6 +17,8 @@ const PlayerSection = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     getUser();
@@ -162,8 +164,8 @@ const PlayerSection = (): JSX.Element => {
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          gap: 3,
-          mb: 6,
+          gap: 2,
+          mb: 4,
           position: 'relative',
           width: '100%'
         }}>
@@ -194,8 +196,8 @@ const PlayerSection = (): JSX.Element => {
                   key={`${player.id}-${currentPage}-${index}`}
                   onClick={() => handlePlayerSelect(player)}
                   sx={{
-                    width: 80,
-                    height: 80,
+                    width: isMobile ? 56 : 80,
+                    height: isMobile ? 56 : 80,
                     border: selectedPlayer?.id === player.id ? '2px solid #00CED1' : '2px solid #e0e0e0',
                     borderRadius: '50%',
                     '&:hover': {
@@ -207,8 +209,8 @@ const PlayerSection = (): JSX.Element => {
                 >
                   <Avatar
                     sx={{
-                      width: 60,
-                      height: 60,
+                      width: isMobile ? 45 : 60,
+                      height: isMobile ? 45 : 60,
                       bgcolor: '#00CED1'
                     }}
                   >

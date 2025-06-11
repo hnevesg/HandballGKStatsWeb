@@ -22,7 +22,7 @@ const Register = () => {
 
   const teams = [
     { label: 'BM Pozuelo Cva', id: 1 },
-    { label: 'BM Caserio', id: 2 },
+    { label: 'BM Caserío', id: 2 },
     { label: 'BM Alarcos', id: 3 }
   ];
 

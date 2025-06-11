@@ -1,4 +1,4 @@
-import { Box, Container, Typography, TextField, Button, Avatar, IconButton, Tooltip } from '@mui/material';
+import { Box, Container, Typography, TextField, Button, Avatar, IconButton, Tooltip, useMediaQuery, useTheme } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'wouter';
@@ -18,6 +18,8 @@ const PlayersComparison = (): JSX.Element => {
   const [loggedUser, setLoggedUser] = useState<User | null>(null);
   const [players, setPlayers] = useState<User[]>([]);
   const playersPerPage = 3;
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     getUser();
@@ -195,32 +197,32 @@ const PlayersComparison = (): JSX.Element => {
             }}
           >
             {getCurrentPagePlayers.map((player, index) => (
-              <Tooltip title={player.name} arrow key={`${player.id}-${currentPage}-${index}`}>            
-              <IconButton
-                key={`${player.id}-${currentPage}-${index}`}
-                onClick={() => handlePlayerSelect(player)}
-                sx={{
-                  width: 80,
-                  height: 80,
-                  border: selectedPlayers[0]?.id === player.id ? '2px solid #00CED1' : selectedPlayers[1]?.id === player.id ? '2px solid #00CED1' : '2px solid #e0e0e0',
-                  borderRadius: '50%',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                    transform: 'scale(1.1)'
-                  }
-                }}
-              >
-                <Avatar
+              <Tooltip title={player.name} arrow key={`${player.id}-${currentPage}-${index}`}>
+                <IconButton
+                  key={`${player.id}-${currentPage}-${index}`}
+                  onClick={() => handlePlayerSelect(player)}
                   sx={{
-                    width: 60,
-                    height: 60,
-                    bgcolor: '#00CED1'
+                    width: isMobile ? 56 : 80,
+                    height: isMobile ? 56 : 80,
+                    border: selectedPlayers[0]?.id === player.id ? '2px solid #00CED1' : selectedPlayers[1]?.id === player.id ? '2px solid #00CED1' : '2px solid #e0e0e0',
+                    borderRadius: '50%',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                      transform: 'scale(1.1)'
+                    }
                   }}
                 >
-                  {player.avatar}
-                </Avatar>
-              </IconButton>
-            </Tooltip>              
+                  <Avatar
+                    sx={{
+                      width: isMobile ? 45 : 60,
+                      height: isMobile ? 45 : 60,
+                      bgcolor: '#00CED1'
+                    }}
+                  >
+                    {player.avatar}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
             ))}
           </Box>
 
@@ -237,11 +239,18 @@ const PlayersComparison = (): JSX.Element => {
 
         <Box sx={{
           display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
           justifyContent: 'space-around',
+          gap: 2,
           mb: 4
         }}>
           <TextField
             label="Player 1"
+            slotProps={{
+              input: {
+                readOnly: true,
+              }
+            }}
             value={selectedPlayers[0]?.name || ''}
             onClick={() => setActiveField(0)}
             sx={{
@@ -252,6 +261,11 @@ const PlayersComparison = (): JSX.Element => {
           />
           <TextField
             label="Player 2"
+            slotProps={{
+              input: {
+                readOnly: true,
+              }
+            }}
             value={selectedPlayers[1]?.name || ''}
             onClick={() => setActiveField(1)}
             sx={{

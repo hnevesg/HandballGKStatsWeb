@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Select, MenuItem, IconButton, Button} from '@mui/material';
+import { Box, Container, Typography, Select, MenuItem, IconButton, Button, Grid } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
@@ -110,16 +110,11 @@ const PlayersSessions = (): JSX.Element => {
           >
             <ArrowBackIcon />
           </IconButton>
-            <Typography variant="h4" align="center" sx={{ flexGrow: 1 }}>Players Comparison</Typography>
+          <Typography variant="h4" align="center" sx={{ flexGrow: 1 }}>Players Comparison</Typography>
         </Box>
 
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          mb: 4,
-          gap: 3
-        }}>
-          <Box sx={{ width: 200 }}>
+        <Grid container spacing={3} justifyContent="center" sx={{ mb: 4 }}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <Typography variant="subtitle2" gutterBottom>Game Mode</Typography>
             <Select
               fullWidth
@@ -129,9 +124,9 @@ const PlayersSessions = (): JSX.Element => {
               <MenuItem value="Default">Default</MenuItem>
               <MenuItem value="Fixed Position">Fixed Position</MenuItem>
             </Select>
-          </Box>
+          </Grid>
 
-          <Box sx={{ width: 200 }}>
+          <Grid item xs={12} sm={6} md={4} lg={3}>
             <Typography variant="subtitle2" gutterBottom>Difficulty</Typography>
             <Select
               fullWidth
@@ -147,32 +142,34 @@ const PlayersSessions = (): JSX.Element => {
               <MenuItem value="LightsReaction">Lights Reaction I</MenuItem>
               <MenuItem value="LightsReaction2">Lights Reaction II</MenuItem>
             </Select>
-          </Box>
-        </Box>
+          </Grid>
+        </Grid>
 
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          gap: 4,
-          mb: 4
-        }}>
-          {/* Player 1 Table */}
-          <PlayerTable
-            playerName={player1?.name || 'Player 1'}
-            playerAvatar="GK1"
-            playerSessions={player1Sessions}
-            selectedSession={player1SelectedSession}
-            setSelectedSession={setPlayer1SelectedSession}
-          />
-          {/* Player 2 Table */}
-          <PlayerTable
-            playerName={player2?.name || 'Player 2'}
-            playerAvatar="GK2"
-            playerSessions={player2Sessions}
-            selectedSession={player2SelectedSession}
-            setSelectedSession={setPlayer2SelectedSession}
-          />
-        </Box>
+
+        <Grid container spacing={4} sx={{ mb: 4 }}>
+          <Grid item xs={12} md={6}>
+
+            {/* Player 1 Table */}
+            <PlayerTable
+              playerName={player1?.name || 'Player 1'}
+              playerAvatar="GK1"
+              playerSessions={player1Sessions}
+              selectedSession={player1SelectedSession}
+              setSelectedSession={setPlayer1SelectedSession}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+
+            {/* Player 2 Table */}
+            <PlayerTable
+              playerName={player2?.name || 'Player 2'}
+              playerAvatar="GK2"
+              playerSessions={player2Sessions}
+              selectedSession={player2SelectedSession}
+              setSelectedSession={setPlayer2SelectedSession}
+            />
+          </Grid>
+        </Grid>
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
           <Button
@@ -180,7 +177,7 @@ const PlayersSessions = (): JSX.Element => {
             disabled={!player1SelectedSession || !player2SelectedSession || !level || !mode}
             onClick={() => handleSessionsSelect()}
           >
-            Comparar
+            Compare
           </Button>
         </Box>
       </Container >

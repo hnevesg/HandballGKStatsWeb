@@ -190,12 +190,20 @@ const SessionDetails = (): JSX.Element => {
                         variant="contained"
                         disabled={exporting}
                         onClick={handleExportPDF}
-                        sx={{ ml: 2, minWidth: 150, fontWeight: 'bold', boxShadow: 2 }}
+                        sx={{
+                            ml: 2,
+                            minWidth: { xs: 100, sm: 150 },
+                            fontWeight: 'bold',
+                            boxShadow: 2,
+                            fontSize: { xs: '0.8rem', sm: '1rem' },
+                            py: { xs: 0.5, sm: 1 },
+                            px: { xs: 1, sm: 2 }
+                        }}
                     >
                         {exporting ? 'Exporting...' : 'Export as PDF'}
                     </Button>
                 </Box>
-                
+
                 <Box ref={pdfRef}>
                     <Grid container spacing={4}>
                         {/* Left Column - Player Info and Session Details */}

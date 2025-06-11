@@ -90,27 +90,44 @@ const Home = (): JSX.Element => {
         <Navbar user={loggedUser} />
       </Box>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box sx={{
-          backgroundImage: 'url("/home_img.png")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          height: '400px',
-          width: '90%',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          color: 'white',
-          textAlign: 'center',
-          mb: 6
-        }}
+        <Box
+          sx={{
+            backgroundImage: 'url("/home_img.png")',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            height: { xs: 220, sm: 300, md: 400 },
+            width: '90%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            color: 'white',
+            textAlign: 'center',
+            mb: 6,
+          }}
         >
-          <Typography variant="h3" gutterBottom
-            sx={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '8px', borderRadius: '4px' }}>
+          <Typography
+            variant="h3"
+            gutterBottom
+            sx={{
+              fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' },
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              padding: { xs: '4px', sm: '8px' },
+              borderRadius: '4px',
+            }}
+          >
             Welcome to Handball GK Stats Web!
           </Typography>
-          <Typography variant="subtitle1" gutterBottom
-            sx={{ backgroundColor: 'rgba(0, 0, 0, 0.5)', padding: '8px', borderRadius: '4px' }}>
+          <Typography
+            variant="subtitle1"
+            gutterBottom
+            sx={{
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              padding: { xs: '4px', sm: '8px' },
+              borderRadius: '4px',
+            }}
+          >
             Want to know more about the game or creators?
           </Typography>
           <Button
@@ -129,41 +146,42 @@ const Home = (): JSX.Element => {
           </Button>
         </Box>
 
-        <Container maxWidth="md" sx={{ mb: 6 }}>
+         <Container maxWidth="md" sx={{ mb: 6 }}>
           <Paper sx={{ p: 2, height: '100%', width: '100%' }}>
             <Typography variant="h5" gutterBottom align="center">Last Sessions</Typography>
             <TableContainer
               component={Paper}
               sx={{
-                width: '70%',
-                mx: 'auto',
-                border: '1px solid black',
+          width: { xs: '100%', sm: '90%', md: '70%' },
+          mx: 'auto',
+          border: '1px solid black',
+          overflowX: 'auto',
               }}
             >
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    {(loggedUser?.role !== Rol.PORTERO) &&
-                      <TableCell sx={{ borderBottom: '1px solid black', borderRight: '1px solid black', textAlign: 'center' }} >User</TableCell>
-                    }
-                    <TableCell sx={{ borderBottom: '1px solid black', textAlign: 'center' }}>Date</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {sessions.map((session) => (
-                    <TableRow key={session.id}>
-                      {loggedUser?.role !== Rol.PORTERO && (
-                        <TableCell sx={{ borderRight: '1px solid black', textAlign: 'center' }}>{getPlayerName(session.player_id)}</TableCell>
-                      )}
-                      <TableCell sx={{ textAlign: 'center' }}>{formatDate(session.date).toString()}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+              <Table size="small" sx={{ minWidth: 320 }}>
+          <TableHead>
+            <TableRow>
+              {(loggedUser?.role !== Rol.PORTERO) &&
+                <TableCell sx={{ borderBottom: '1px solid black', borderRight: '1px solid black', textAlign: 'center', fontSize: { xs: '0.9rem', sm: '1rem' } }} >User</TableCell>
+              }
+              <TableCell sx={{ borderBottom: '1px solid black', textAlign: 'center', fontSize: { xs: '0.9rem', sm: '1rem' } }}>Date</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {sessions.map((session) => (
+              <TableRow key={session.id}>
+                {loggedUser?.role !== Rol.PORTERO && (
+            <TableCell sx={{ borderRight: '1px solid black', textAlign: 'center', fontSize: { xs: '0.9rem', sm: '1rem' } }}>{getPlayerName(session.player_id)}</TableCell>
+                )}
+                <TableCell sx={{ textAlign: 'center', fontSize: { xs: '0.9rem', sm: '1rem' } }}>{formatDate(session.date).toString()}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
               </Table>
             </TableContainer>
           </Paper>
         </Container>
-      </Container >
+  </Container >
     </Box >
   );
 };
