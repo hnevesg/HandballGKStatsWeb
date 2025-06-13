@@ -1,10 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import {
-    Box,
-    Container,
-    Typography,
-    Paper
-} from '@mui/material';
+import { Box, Container, Typography, Paper } from '@mui/material';
 import Navbar from '../components/navBar';
 import { User } from '../types/user';
 import { baseURL, streamingURL } from '../components/utils';
@@ -20,7 +15,6 @@ const Streaming: React.FC = () => {
     const [frameRate, setFrameRate] = useState<string>('');
     const [jitter, setJitter] = useState<string>('');
     const [packetLoss, setPacketLoss] = useState<string>('');
-    const [rtt, setRoundTripTime] = useState<string>('');
     const [codec, setCodec] = useState<string>('');
     let prevBytesReceived = 0;
     let prevTimestamp = 0;
@@ -43,7 +37,7 @@ const Streaming: React.FC = () => {
             const stats = await peerConnection.getStats();
             stats.forEach(report => {
                 if (report.type === "inbound-rtp" && report.kind === "video") {
-                    console.log("Inbound video report:", report);
+                    console.log("RECEIVER - Inbound video report:", report);
 
                     if ("bytesReceived" in report && "timestamp" in report) {
                         if (prevTimestamp) {
@@ -56,9 +50,6 @@ const Streaming: React.FC = () => {
                         prevTimestamp = report.timestamp;
                     }
 
-                    /* if ("bitrate" in report) {
-                       setBitrate(`${(report.bytesReceived / 1000).toFixed(2)} kbps`);
-                     }*/
                     if ("frameWidth" in report && "frameHeight" in report) {
                         setResolution(`${report.frameWidth}x${report.frameHeight}`);
                     }
@@ -81,9 +72,6 @@ const Streaming: React.FC = () => {
                 else if (report.type === "codec" && report.mimeType) {
                     setCodec(report.mimeType);
                 }
-                else if (report.type === "remote-inbound-rtp" && "roundTripTime" in report) {
-                    setRoundTripTime(`${report.roundTripTime} s`);
-                }
             });
         }, 2000); // updates every 2 seconds
     };
@@ -92,8 +80,10 @@ const Streaming: React.FC = () => {
         const peerConnection = new RTCPeerConnection();
 
         ws = new WebSocket(streamingURL);
+        let ID = '';
+
         ws.onopen = () => {
-            console.log('WebSocket connection established');
+            console.log('RECEIVER - WebSocket connection opened');
             logStats(peerConnection);
         };
 
@@ -102,10 +92,18 @@ const Streaming: React.FC = () => {
         ws.onmessage = async (message) => {
             const data = JSON.parse(message.data);
 
-            if (data.type === "offer") {
-                console.log("RECEIVER - Received offer:" + data.sdp);
+            if (data.type === "welcome") {
+                ID = data.senderId;
+
+                const helloMsg = {
+                    type: "hello",
+                    senderId: ID,
+                    targetId: 1
+                };
+                ws.send(JSON.stringify(helloMsg));
+            } else if (data.type === "offer") {
                 const offer = new RTCSessionDescription({ sdp: data.sdp, type: "offer" });
-              
+
                 await peerConnection.setRemoteDescription(offer);
                 const answer = await peerConnection.createAnswer();
                 await peerConnection.setLocalDescription(answer);
@@ -115,33 +113,33 @@ const Streaming: React.FC = () => {
                         console.log("RECEIVER - ICE gathering complete");
                         const localDescription = peerConnection.localDescription;
                         if (localDescription) {
-                            const msg = JSON.stringify({ type: "answer", sdp: localDescription.sdp });
-                            console.log("Sending message over WebSocket, size:", msg.length);
-                            ws.send(msg);
-                            console.log("Full Answer SDP:\n" + msg);
+                            const answerMsg = {
+                                type: "answer",
+                                sdp: localDescription.sdp,
+                                senderId: ID,
+                                targetId: 1
+                            };
+                            ws.send(JSON.stringify(answerMsg));
                             console.log("RECEIVER - Answer and ICE candidates sent together");
                         }
                     }
                 };
             } else if (data.type === "candidate" && data.candidate) {
-                console.log("RECEIVER - Received ICE candidate");
                 const candidate = new RTCIceCandidate(data.candidate);
                 await peerConnection.addIceCandidate(candidate);
             }
         };
 
         peerConnection.ontrack = (event) => {
-            console.log("RECEIVER - Received remote stream track");
-
             let streamToUse;
 
             if (event.streams.length === 0) {
                 // new MediaStream with the received track
                 streamToUse = new MediaStream([event.track]);
-                console.log("Created new MediaStream with received video track");
+                console.log("RECEIVER - Created new MediaStream with received video track");
             } else {
                 streamToUse = event.streams[0];
-                console.log("Using existing stream");
+                console.log("RECEIVER - Using existing stream");
             }
 
             const video = videoRef.current;
@@ -152,12 +150,10 @@ const Streaming: React.FC = () => {
             video.muted = true;
             video.autoplay = true;
             video.playsInline = true;
-            
-            video.onloadedmetadata = () => {
-                console.log("!!! loadedmetadata fired"); // cuando se muestra este log, empieza la retransmisión
 
+            video.onloadedmetadata = () => {
                 video.play().then(() => {
-                    console.log("Video is playing");
+                    console.log("RECEIVER - Video is playing");
                 }).catch((err) => {
                     console.error("Video play error:", err);
                 });
@@ -176,7 +172,10 @@ const Streaming: React.FC = () => {
             <Container maxWidth="lg" sx={{ mt: 4 }}>
                 <Box sx={{
                     display: 'flex',
-                    flexDirection: 'row',
+                    flexDirection: 'column',
+                    '@media (orientation: landscape)': {
+                        flexDirection: 'row',
+                    },
                     gap: 4
                 }}>
 
@@ -184,54 +183,51 @@ const Streaming: React.FC = () => {
                     <Paper
                         elevation={2}
                         sx={{
-                            p: 3,
-                            maxWidth: 300,
-                            width: '100%',
+                            p: { xs: 1, sm: 2 },
+                            width: { xs: '100%', sm: 220, md: 260 },
+                            maxWidth: { xs: '90%', sm: 220, md: 260 },
+                            fontSize: { xs: '0.85rem', sm: '0.95rem', md: '1rem' },
                             textAlign: 'center',
-                            alignSelf: 'flex-start',
+                            alignSelf: 'center',
                             ml: 0
                         }}
                     >
-                        <Typography variant="h6" gutterBottom>
+                        <Typography variant="h6" gutterBottom sx={{ fontSize: { xs: '1rem', sm: '1.1rem', md: '1.25rem', fontWeight: 'bold' } }}>
                             Technical Information
                         </Typography>
                         <Box sx={{ display: 'grid', gridTemplateColumns: 'auto 1fr', gap: 2 }}>
-                            <Typography variant="body1" fontWeight="bold">Resolution:</Typography>
+                            <Typography variant="body1" fontWeight="bold" sx={{ fontSize: 'inherit' }}>Resolution:</Typography>
                             <Typography variant="body1">{resolution}</Typography>
 
-                            <Typography variant="body1" fontWeight="bold">Codec:</Typography>
+                            <Typography variant="body1" fontWeight="bold" sx={{ fontSize: 'inherit' }}>Codec:</Typography>
                             <Typography variant="body1">{codec}</Typography>
 
-                            <Typography variant="body1" fontWeight="bold">Bitrate:</Typography>
+                            <Typography variant="body1" fontWeight="bold" sx={{ fontSize: 'inherit' }}>Bitrate:</Typography>
                             <Typography variant="body1">{bitrate}</Typography>
 
-                            <Typography variant="body1" fontWeight="bold">Frame Rate:</Typography>
+                            <Typography variant="body1" fontWeight="bold" sx={{ fontSize: 'inherit' }}>Frame Rate:</Typography>
                             <Typography variant="body1">{frameRate}</Typography>
 
-                            <Typography variant="body1" fontWeight="bold">Jitter:</Typography>
+                            <Typography variant="body1" fontWeight="bold" sx={{ fontSize: 'inherit' }}>Jitter:</Typography>
                             <Typography variant="body1">{jitter}</Typography>
 
-                            {/* 
-                                <Typography variant="body1" fontWeight="bold">Round Trip Time:</Typography>
-                                <Typography variant="body1">{rtt}</Typography> 
-                            */}
-
-                            <Typography variant="body1" fontWeight="bold">Packet Loss:</Typography>
+                            <Typography variant="body1" fontWeight="bold" sx={{ fontSize: 'inherit' }}>Packet Loss:</Typography>
                             <Typography variant="body1">{packetLoss}</Typography>
                         </Box>
                     </Paper>
-
                     {/* Video container */}
                     <Paper
                         elevation={3}
                         sx={{
-                            width: '100%',
+                            flex: 1,
                             bgcolor: 'black',
                             aspectRatio: '16/9',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            flex: 8
+                            minWidth: 0,
+                            width: '100%',
+                            maxWidth: '100%',
                         }}
                     >
                         <video
@@ -239,7 +235,12 @@ const Streaming: React.FC = () => {
                             controls
                             autoPlay
                             playsInline
-                            style={{ width: '100%', height: '100%' }}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'contain',
+                                background: 'black',
+                            }}
                         >
                             Your browser does not support the video tag.
                         </video>

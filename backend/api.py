@@ -1,35 +1,23 @@
 import tempfile
-import websockets
-import json
 import os
 import shutil
 import signal
 import sys
-import time
 import numpy as np
 import logging
 import uvicorn
 import hashlib
 import locale
-import pygetwindow
-import pyautogui
 import matplotlib
 import pandas as pd
-import cv2
-import asyncio
-import subprocess
 matplotlib.use("Agg")
 from io import BytesIO
-from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File, WebSocket, WebSocketDisconnect, Request
-from aiortc import RTCSessionDescription, RTCPeerConnection, RTCConfiguration, RTCIceServer, VideoStreamTrack
+from fastapi import FastAPI, HTTPException, Response, Query, UploadFile, File, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import create_engine, Column, String, Integer, Float
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 from matplotlib import pyplot
 from matplotlib.ticker import MaxNLocator
 from matplotlib.colors import LinearSegmentedColormap
@@ -37,18 +25,14 @@ from matplotlib.colors import LinearSegmentedColormap
 from roles import Rol
 from send_to_db import load_csv_to_mysql
 from SignalingServer import SignalingServer
-from ScreenCaptureTrack import ScreenCaptureTrack
 from plot_animacion_luces import create_animation
+import threading
 
+DATABASE_URL = "mysql+pymysql://root:helena@127.0.0.1/gk_stats_web"  
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-DATABASE_URL = "mysql+pymysql://root:helena@192.168.43.173/gk_stats_web"  
-SIGNALING_SERVER = "wss://192.168.43.173:5555/ws"
-
 signaling_srv = SignalingServer()
-screentrack_sender = ScreenCaptureTrack()
-
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -152,6 +136,7 @@ class ResetPswdRequest(BaseModel):
     email: str
     password: str
     salt: str
+
 # ------------------- Authentication -------------------
 @app.post("/register")
 def register_user(request: RegisterRequest):
@@ -256,6 +241,7 @@ def reset_password(request: ResetPswdRequest):
         raise HTTPException(status_code=500, detail=e)
     finally:
         session.close()
+        
 # ------------------- Sessions -------------------
 @app.get("/sessions/{player_id}")
 def get_sessions(player_id: int, mode: str = Query(None), level: str = Query(None), begin_date: str = Query(None), end_date: str = Query(None)):
@@ -444,7 +430,7 @@ def get_heatmap(session_date: str):
 
     total_matrix = goal_matrix + save_matrix
 
-    #Para las zonas sin lanzamientos
+    # para las zonas sin lanzamientos
     mask = total_matrix == 0
     heatmap_data = np.ma.masked_array(goal_matrix, mask=mask)
             
@@ -493,18 +479,18 @@ def get_scatterplot_positions(session_date: str):
     head_pos_y = np.array(head_pos_y)
    
     fig, ax = pyplot.subplots()
+    
+    handR_pos_x_diff = handR_pos_x - np.mean(handR_pos_x)
+    handR_pos_y_diff = handR_pos_y - np.mean(handR_pos_y)
+    ax.scatter(handR_pos_x_diff, handR_pos_y_diff, label="Right Hand (Relative Difference)", color='gray', alpha=0.7)
+
+    handL_pos_x_diff = handL_pos_x - np.mean(handL_pos_x)
+    handL_pos_y_diff = handL_pos_y - np.mean(handL_pos_y)
+    ax.scatter(handL_pos_x_diff, handL_pos_y_diff, label="Left Hand (Relative Difference)", color='purple', alpha=0.7)
 
     head_pos_x_diff = head_pos_x - np.mean(head_pos_x)
     head_pos_y_diff = head_pos_y - np.mean(head_pos_y)
     ax.scatter(head_pos_x_diff, head_pos_y_diff, label="Head (Relative Difference)", color='red', alpha=0.7)
-    
-    handR_pos_x_diff = handR_pos_x - np.mean(handR_pos_x)
-    handR_pos_y_diff = handR_pos_y - np.mean(handR_pos_y)
-    ax.scatter(handR_pos_x_diff, handR_pos_y_diff, label="Right Hand (Relative Difference)", color='blue', alpha=0.7)
-
-    handL_pos_x_diff = handL_pos_x - np.mean(handL_pos_x)
-    handL_pos_y_diff = handL_pos_y - np.mean(handL_pos_y)
-    ax.scatter(handL_pos_x_diff, handL_pos_y_diff, label="Left Hand (Relative Difference)", color='green', alpha=0.7)
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
@@ -550,26 +536,25 @@ def get_3D_scatterplot_positions(session_date: str):
    
     fig = pyplot.figure()
     ax = fig.add_subplot(111, projection='3d') 
+    
+    handR_pos_x_diff = handR_pos_x - np.mean(handR_pos_x)
+    handR_pos_y_diff = handR_pos_y - np.mean(handR_pos_y)
+    handR_pos_z_diff = handR_pos_z - np.mean(handR_pos_z)
+    ax.scatter(handR_pos_x_diff, handR_pos_y_diff, handR_pos_z_diff, label="Right Hand (Relative Difference)", color='gray', alpha=0.7)
+
+    handL_pos_x_diff = handL_pos_x - np.mean(handL_pos_x)
+    handL_pos_y_diff = handL_pos_y - np.mean(handL_pos_y)
+    handL_pos_z_diff = handL_pos_z - np.mean(handL_pos_z)
+    ax.scatter(handL_pos_x_diff, handL_pos_y_diff, handL_pos_z_diff, label="Left Hand (Relative Difference)", color='purple', alpha=0.7)
 
     head_pos_x_diff = head_pos_x - np.mean(head_pos_x)
     head_pos_y_diff = head_pos_y - np.mean(head_pos_y)
     head_pos_z_diff = head_pos_z - np.mean(head_pos_z)
     ax.scatter(head_pos_x_diff, head_pos_y_diff, head_pos_z_diff, label="Head (Relative Difference)", color='red', alpha=0.7)
-    
-    handR_pos_x_diff = handR_pos_x - np.mean(handR_pos_x)
-    handR_pos_y_diff = handR_pos_y - np.mean(handR_pos_y)
-    handR_pos_z_diff = handR_pos_z - np.mean(handR_pos_z)
-    ax.scatter(handR_pos_x_diff, handR_pos_y_diff, handR_pos_z_diff, label="Right Hand (Relative Difference)", color='blue', alpha=0.7)
-
-    handL_pos_x_diff = handL_pos_x - np.mean(handL_pos_x)
-    handL_pos_y_diff = handL_pos_y - np.mean(handL_pos_y)
-    handL_pos_z_diff = handL_pos_z - np.mean(handL_pos_z)
-    ax.scatter(handL_pos_x_diff, handL_pos_y_diff, handL_pos_z_diff, label="Left Hand (Relative Difference)", color='green', alpha=0.7)
 
     ax.set_xlabel('Width')
     ax.set_ylabel('Height')
     ax.set_zlabel('Depth')
-#    pyplot.tight_layout()
     ax.set_title('3D Head and Hands Position')
     ax.legend()    
 
@@ -585,7 +570,7 @@ def get_plot_times(session_date: str):
     """Función que crea el gráfico de dispersión de la velocidad de reacción en cada lanzamiento."""
     session_data = get_session_data(session_date)
     
-    locale.setlocale(locale.LC_NUMERIC, 'C')  # For consistent decimal point handling
+    locale.setlocale(locale.LC_NUMERIC, 'C')  # para el punto decimal
     shoots_initial_time = [locale.atof(time) for time in session_data.shoots_initial_time.split(",")]
     shoots_final_time = [locale.atof(time) for time in session_data.shoots_final_time.split(",")]
 
@@ -694,7 +679,7 @@ def get_heatmap_progress(player_id: int, begin_date: str, end_date: str, mode: s
 
         total_matrix = goal_matrix + save_matrix
 
-        #Para las zonas sin lanzamientos
+        # para las zonas sin lanzamientos
         mask = total_matrix == 0
 
         heatmap_data = np.ma.masked_array(goal_matrix, mask=mask)
@@ -929,7 +914,7 @@ def get_reaction_speed_animation(session_date: str):
 # ------------------- DB management -------------------
 @app.post("/upload_csv")
 async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
-    
+    """Función para subir un archivo CSV y procesarlo."""
     if not file.filename.endswith(".csv"):
        return {"error": "Invalid file type. Only CSV files are allowed."}
 
@@ -940,7 +925,6 @@ async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
-    #Sending csv to DB
     response = load_csv_to_mysql(file_path)
 
     if response == 200:
@@ -956,23 +940,22 @@ async def upload_csv(file: UploadFile = File(...), userId: str = Query(...)):
         
 # ------------------- WebRTC signaling server -------------------
 @app.websocket("/webrtc-signaling")
-async def websocket_endpoint(websocket: WebSocket):
-    await signaling_srv.connect(websocket)
+async def websocket_endpoint(websocket: WebSocket, role: str = Query(None)):
+    await signaling_srv.connect(websocket, role=role)
     try:
         while True:
             data = await websocket.receive_json()
-            print("Received data:", data)
-            if "target" in data and data["target"]:
-                # Direct message to specific client
-                await signaling_srv.send_personal_message(data, websocket)
+
+            if "targetId" in data and data["targetId"]:
+                await signaling_srv.send_personal_message(data)
             else:
-                # Broadcast to all other clients
-                print("Broadcasting message")
+                logging.info("Broadcasting message")
                 await signaling_srv.broadcast(data, websocket)
+
     except WebSocketDisconnect:
         signaling_srv.disconnect(websocket)
     except RuntimeError as e:
-        print(f"Runtime error: {e}")
+        logging.error(f"Runtime error: {e}")
 
 def shutdown():
     sys.exit(0)
@@ -980,7 +963,4 @@ def shutdown():
 signal.signal(signal.SIGTERM, shutdown)
 
 if __name__ == "__main__":
-   # Base.metadata.create_all(bind=engine)
-    time.sleep(2)  # wait for scrcpy window to appear
-
     uvicorn.run(app, host="gkstatsweb.duckdns.org", port=12345, ssl_keyfile="certs/privkey.pem", ssl_certfile="certs/cert.pem")

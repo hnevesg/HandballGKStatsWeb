@@ -94,7 +94,7 @@ const PlayersComparison = (): JSX.Element => {
     if (loggedUser?.role != Rol.ENTRENADOR && loggedUser?.role != Rol.ADMINISTRADOR) return;
     try {
       if (loggedUser?.role == Rol.ENTRENADOR) {
-        const response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
+        const response = await fetch(`${baseURL}/players?team_id=${loggedUser?.teamID}`);
         const data = await response.json();
 
         if (response.ok) {

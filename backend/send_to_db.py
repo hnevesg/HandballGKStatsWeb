@@ -1,6 +1,7 @@
-import re
+import logging
 import pandas as pd
-from sqlalchemy import create_engine, Table, Column, Integer, Float, String, MetaData
+import re
+from sqlalchemy import create_engine
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -107,7 +108,7 @@ def load_csv_to_mysql(file_path):
             session_data = session_data.tail(1)
             
             session_data.to_sql(table_name, engine, if_exists='append', index=False)
-            print(f"Data from {file_path} has been saved to {table_name} table.")
+            logging.info(f"Data from {file_path} has been saved to {table_name} table.")
             
             table_name = "sessions_data"
             file_data = pd.read_csv(file_path, delimiter=';', header=0, index_col=False)
@@ -117,12 +118,8 @@ def load_csv_to_mysql(file_path):
             file_data = file_data.tail(1)
                         
             file_data.to_sql(table_name, engine, if_exists='append', index=False)
-            print(f"Data from {file_path} has been saved to {table_name} table.")
-        
-        #elif "BallTracking" in file_path:
-            #file_data.rename(columns=session_ball_header_to_column_mapping, inplace=True)
-            #file_data = file_data[list(session_ball_header_to_column_mapping.values())]
-        
+            logging.info(f"Data from {file_path} has been saved to {table_name} table.")
+                
         elif "OculusTracking" in file_path:
             table_name = "sessions_tracking"
             file_data.rename(columns=session_tracking_header_to_column_mapping, inplace=True)
@@ -130,7 +127,7 @@ def load_csv_to_mysql(file_path):
             file_data = file_data[list(session_tracking_header_to_column_mapping.values())]
 
             file_data.to_sql(table_name, engine, if_exists='append', index=False)
-            print(f"Data from {file_path} has been saved to {table_name} table.")
+            logging.info(f"Data from {file_path} has been saved to {table_name} table.")
             
         elif "ReactionSpeed" in file_path:
             table_name = "sessions_reaction"
@@ -139,13 +136,12 @@ def load_csv_to_mysql(file_path):
             file_data = file_data[list(session_reaction_header_to_column_mapping.values())]
 
             file_data.to_sql(table_name, engine, if_exists='append', index=False)
-            print(f"Data from {file_path} has been saved to {table_name} table.")        
+            logging.info(f"Data from {file_path} has been saved to {table_name} table.")        
         
         return 200
     
     except Exception as e:
-        print(f"Error: {e}")
-        print(f"Error loading data from {file_path} to {table_name} table.")
+        logging.error(f"Error: {e}\n .While loading data from {file_path} to {table_name} table.")
         return 500
 
 if __name__ == "__main__":

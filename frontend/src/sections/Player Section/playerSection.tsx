@@ -101,7 +101,7 @@ const PlayerSection = (): JSX.Element => {
         console.error('Failed to fetch player:', data.message);
       }
     } else if (loggedUser?.role == Rol.ENTRENADOR) {
-      response = await fetch(`${baseURL}/players/${loggedUser?.teamID}`);
+      response = await fetch(`${baseURL}/players?team_id=${loggedUser?.teamID}`);
       const data = await response?.json();
 
       if (response?.ok) {
