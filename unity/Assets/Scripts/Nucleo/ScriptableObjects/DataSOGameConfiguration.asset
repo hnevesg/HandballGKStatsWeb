@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c2792e186cdd12447a583b69255d09e1, type: 3}
+  m_Name: DataSOGameConfiguration
+  m_EditorClassIdentifier: 
+  grabIdentier: 
+  moveCorrectly: 0
+  gameStopped: 0
+  gameStarts: 0
+  userPath: 
+  gameName: HandBall
+  gameConfiguration:
+    userId: default
+    timer: 60
+    handInteraction: 0
+    level: 1
+    autogripR: 0
+    autogripL: 0
+    objectsPosition:
+      keys: []
+      values: []
+    grabInteraction: 1
+    rayInteraction: 0
+    gameOptions:
+      keys:
+      - k_handballadapted
+      - k_desplazamientoCanon
+      - k_rotacionPelota
+      - k_curvaLanzamiento
+      - k_distintosTiposPelotas
+      - k_manosUtilizadas
+      - golesObjetivo
+      - k_golesObjetivoIndex
+      - idEjercicio
+      - k_canonCentral
+      - k_canonPivote
+      - k_canonLatIzq
+      - k_canonLatDer
+      - k_canonExtIzq
+      - k_canonExtDer
+      values:
+      - false
+      - true
+      - true
+      - false
+      - true
+      - Both
+      - 20
+      - 3
+      - 4
+      - true
+      - false
+      - false
+      - false
+      - false
+      - false
+  calibrationConfiguration:
+    hmdInitialPosition: {x: 0, y: 0, z: 0}
+    hmdInitialRotation: {x: 0, y: 0, z: 0, w: 1}
+    trunkDisplacementThreshold_X: 0.1
+    trunkDisplacementThreshold_Z: 0.1
+    neckFlexionThreshold_X: 0
+    neckFlexionThreshold_Y: 0
+    neckFlexionThreshold_Z: 0
+    armSupinationThreshold: 0

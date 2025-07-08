@@ -79,6 +79,13 @@ El backend está desarrollado utilizando **FastAPI**, una moderna framework para
 ```
 
 ---
+## Unity
+Se ha utilizado la versión 2022.3.48f1 de Unity.
+
+Los principales componentes se encuentran en *Assets*:
+- Scripts
+- Scenes -> HandballScene
+---
 
 ## Notas Adicionales
 
