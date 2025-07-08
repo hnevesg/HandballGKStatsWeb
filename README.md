@@ -9,12 +9,7 @@ El frontend está desarrollado utilizando **React** y **TypeScript** y utiliza v
 1. **Dependencias del proyecto:**
 
    ```bash
-   npm install react
-   npm install vite
-   npm install @types/react
-   npm install @mantine/core @mantine/hooks
-   npm install wouter
-   npm install @mui/material @mui/styled-engine-sc styled-components @mui/icons-material
+   npm install
    ```
 
 ### Backend
@@ -52,14 +47,14 @@ El backend está desarrollado utilizando **FastAPI**, una moderna framework para
    npm run dev
    ```
 
-   Este comando lanzará la aplicación en modo de desarrollo utilizando **Vite**. Por defecto, el proyecto se ejecutará en `http://localhost:5173`.
+   Este comando lanzará la aplicación en modo de desarrollo utilizando **Vite**. El proyecto se ejecutará en `https://gkstatsweb.duckdns.org:4443`.
 
 - **Iniciar el servidor de backend:**
 
    ```bash
-   uvicorn api:app --reload
+   pyton api.py
    ```
-   Esto iniciará el servidor en `http://localhost:8000` por defecto. La opción `--reload` permite que el servidor se recargue automáticamente cuando se realicen cambios en el código.
+   Esto iniciará el servidor en `https://gkstatsweb.duckdns.org:12345`.
 
 ---
 
